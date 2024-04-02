@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-backup
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-backup
+  template:
+    metadata:
+      labels:
+        app: postgres-backup
+    spec:
+      volumes:
+        - name: pgbackvol
+          persistentVolumeClaim:
+            claimName: postgres-backup
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["/bin/sleep", "36500d"]
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: "/data"
+          name: pgbackvol
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2G
+          requests:
+            cpu: "1"
+            memory: 2G
+      restartPolicy: Always
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: postgres-backup
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi

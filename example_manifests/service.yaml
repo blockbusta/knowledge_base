@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: minio
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 80 # port which will be exposed on this service
+    protocol: TCP
+    targetPort: 9000 # the container port to be accessed on the pod
+  selector:
+    app: minio # expose the pods marked with this label
+  sessionAffinity: None
+  type: ClusterIP

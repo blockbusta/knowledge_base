@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-debugger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: network-debugger
+  template:
+    metadata:
+      labels:
+        app: network-debugger
+    spec:
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["/bin/sleep", "infinity"]
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2G
+          requests:
+            cpu: "1"
+            memory: 2G
+      restartPolicy: Always

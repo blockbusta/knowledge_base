@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mypv
+spec:
+  capacity:
+    storage: 10Gi
+  volumeMode: Filesystem
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: mynfs # the NFS storage class
+  nfs:
+    path: /kubernetes/bla1/bla2 # change to the path
+    server: nfsserver.example.com # and this to your server
+  claimRef:
+    namespace: default # namespace of the PVC
+    name: mypvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mypvc
+spec:
+  storageClassName: mynfs # the NFS storage class
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-with-nfs-vol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ubuntu-machine
+  template:
+    metadata:
+      labels:
+        app: ubuntu-machine
+    spec:
+      volumes:
+        - name: cool-vol
+          persistentVolumeClaim:
+            claimName: mypvc
+      containers:
+      - name: ubuntu
+        image: ubuntu:22.04
+        command: ["/bin/sleep", "36500d"]
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: "/test-data"
+          name: cool-vol
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2G
+          requests:
+            cpu: "1"
+            memory: 2G
+      restartPolicy: Always

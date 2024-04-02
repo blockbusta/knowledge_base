@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: test
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: grafana.webapp.me # host route
+    http:
+      paths:
+      - backend:
+          service:
+            name: grafana # service name
+            port:
+              number: 8080 # service port
+        path: /
+        pathType: Prefix
+#  tls:
+#  - hosts:
+#    - grafana.webapp.me
+#    secretName: intel-tls-cert

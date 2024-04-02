@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nfs-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nfs-test
+  template:
+    metadata:
+      labels:
+        app: nfs-test
+    spec:
+      containers:
+      - name: nfs-test-container
+        image: nginx
+        volumeMounts:
+        - name: nfs-volume
+          mountPath: /mnt/nfs
+      volumes:
+      - name: nfs-volume
+        nfs:
+          server: <NFS_SERVER_IP>
+          path: <NFS_EXPORT_PATH>
+          readOnly: true

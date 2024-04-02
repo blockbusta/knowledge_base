@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gpu-test-job
+  namespace: gpu-test
+spec:
+  selector:
+    matchLabels:
+      job: gpu-test-job
+  template:
+    metadata:
+      labels:
+        job: gpu-test-job
+    spec:
+      containers:
+      - command: ["sleep","infinity"]
+        image: nvcr.io/nvidia/pytorch:22.02-py3
+        imagePullPolicy: Always
+        name: gpu-container
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+            cpu: 1
+            memory: 2G
+          requests:
+            nvidia.com/gpu: 1
+            cpu: 1
+            memory: 2G
+      restartPolicy: Always
+      securityContext: {}
+      tolerations:
+      - effect: NoSchedule
+        key: nvidia.com/gpu
+        value: present

@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver-deployment
+  labels:
+    app: webserver
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webserver
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - name: webserver
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 0
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+        image: 'nginx:latest'
+      volumes:
+      - name: html
+        configMap:
+          name: nginx-html
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-html
+data:
+  index.html: |
+    <html>
+    <head>
+      <title>Welcome to my custom Nginx page!</title>
+    </head>
+    <body>
+      <h1>Hello, this is my custom Nginx page! yaalalaalal balalalgaan!!!!!</h1>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-server-service
+spec:
+  selector:
+    app: webserver
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: web-server
+  annotations:
+    cert-manager.io/issuer: "pebble-issuer"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - nginxtest.webapp.me
+    secretName: web-server-tls
+  rules:
+  - host: nginxtest.webapp.me
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: web-server-service
+            port:
+              number: 80

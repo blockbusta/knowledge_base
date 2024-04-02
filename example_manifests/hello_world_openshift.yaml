@@ -1,0 +1,90 @@
+# WEBSERVER_ROUTE="web-server.webapp.me"
+# DEMO_NAMEPSACE="nginxtest"
+# kubectl create namespace $DEMO_NAMEPSACE
+# oc -n $DEMO_NAMEPSACE adm policy add-scc-to-user anyuid -z webserver-sa
+# kubectl -n $DEMO_NAMEPSACE apply -f - <<EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webserver-deployment
+  labels:
+    app: webserver
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: webserver
+  template:
+    metadata:
+      labels:
+        app: webserver
+    spec:
+      containers:
+      - name: webserver
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        securityContext:
+          allowPrivilegeEscalation: false
+          runAsUser: 0
+        volumeMounts:
+        - name: html
+          mountPath: /usr/share/nginx/html
+        image: 'nginx:latest'
+      volumes:
+      - name: html
+        configMap:
+          name: nginx-html
+      serviceAccountName: webserver-sa
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-html
+data:
+  index.html: |
+    <html>
+    <head>
+      <title>Welcome to my custom Nginx page!</title>
+    </head>
+    <body>
+      <h1>Hello, this is my custom Nginx page! yaalalaalal balalalgaan!!!!!</h1>
+    </body>
+    </html>
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-server-service
+spec:
+  selector:
+    app: webserver
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: web-server-route
+  labels:
+    app: webserver
+spec:
+  host: $WEBSERVER_ROUTE
+  to:
+    kind: Service
+    name: web-server-service
+    weight: 100
+  port:
+    targetPort: 80
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+  wildcardPolicy: None
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: webserver-sa
+# EOF

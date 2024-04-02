@@ -1,0 +1,191 @@
+# to replace:
+# webapp.me (base domain)
+# ACCESS_KEY (optional)
+# SECRET_KEY (optional)
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: minio
+spec:
+  finalizers:
+  - kubernetes
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio-standalone
+  namespace: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio-standalone
+  template:
+    metadata:
+      labels:
+        app: minio-standalone
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minio-storage
+      containers:
+      - name: minio-standalone
+        envFrom:
+        - secretRef:
+            name: minio-creds
+        env:
+          - name: MINIO_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: minio-creds
+                key: ACCESS_KEY
+          - name: MINIO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: minio-creds
+                key: SECRET_KEY
+        image: minio/minio:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /minio/health/live
+            port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 1
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+        volumeMounts:
+        - mountPath: "/data"
+          name: data
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /minio/health/ready
+            port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "8"
+            memory: 20Gi
+          requests:
+            cpu: 200m
+            memory: 2Gi
+      restartPolicy: Always
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: minio-storage
+  namespace: minio
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 40Gi
+---
+apiVersion: v1
+stringData:
+  ACCESS_KEY: Q824h9vGSDFG74gj94MKCOS84V0a7f2a0fnZa
+  SECRET_KEY: WZHu00yVPQNiGIs104ZIHprWx5Qgvog23EzPIs2x6qQvBdpKoo2EMkg2EzmHhb1BUvtFpKTdAKD9r4uI7xR
+kind: Secret
+metadata:
+  name: minio-creds
+  namespace: minio
+type: Opaque
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-standalone
+  namespace: minio
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 9000
+  selector:
+    app: minio-standalone
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: minio-standalone
+  namespace: minio
+spec:
+  gateways:
+  - istio-gw
+  hosts:
+  - minio-standalone.webapp.me
+  http:
+  - retries:
+      attempts: 5
+      perTryTimeout: 3600s
+    route:
+    - destination:
+        host: minio-standalone.minio.svc.cluster.local
+        port:
+          number: 80
+    timeout: 18000s
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-standalone-ui
+  namespace: minio
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: 9090
+  selector:
+    app: minio-standalone
+  sessionAffinity: None
+  type: ClusterIP
+---
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: minio-standalone-ui
+  namespace: minio
+spec:
+  gateways:
+  - istio-gw
+  hosts:
+  - minio-standalone-ui.webapp.me
+  http:
+  - retries:
+      attempts: 5
+      perTryTimeout: 3600s
+    route:
+    - destination:
+        host: minio-standalone-ui.minio.svc.cluster.local
+        port:
+          number: 80
+    timeout: 18000s

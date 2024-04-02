@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ubuntu-machine-with-vol
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ubuntu-machine
+  template:
+    metadata:
+      labels:
+        app: ubuntu-machine
+    spec:
+      volumes:
+        - name: cool-vol
+          persistentVolumeClaim:
+            claimName: my-cool-data
+      containers:
+      - name: ubuntu
+        image: ubuntu:latest
+        command: ["/bin/sleep", "36500d"]
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: "/test-data"
+          name: cool-vol
+        resources:
+          limits:
+            cpu: "1"
+            memory: 2G
+          requests:
+            cpu: "1"
+            memory: 2G
+      restartPolicy: Always
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: my-cool-data
+spec:
+  accessModes:
+    - ReadWriteOnce ### can switch to ReadWriteMany if needed
+  resources:
+    requests:
+      storage: 20Gi

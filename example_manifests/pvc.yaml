@@ -1,0 +1,11 @@
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: my-cool-data
+spec:
+# storageClassName: my-storage-class ### if you want to use any non-default storage class
+  accessModes:
+    - ReadWriteOnce ### can switch to ReadWriteMany if needed
+  resources:
+    requests:
+      storage: 20Gi

@@ -1,0 +1,88 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: dbs-backups
+  namespace: webapp
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: db-cron-job-pod
+            image: ubuntu:latest
+            imagePullPolicy: Always
+            env:
+            - name: STORAGE_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cp-object-storage
+                  key: STORAGE_ACCESS_KEY
+            - name: STORAGE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: cp-object-storage
+                  key: STORAGE_SECRET_KEY
+            - name: STORAGE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: cp-object-storage
+                  key: STORAGE_BUCKET
+            - name: STORAGE_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: cp-object-storage
+                  key: STORAGE_ENDPOINT
+            - name: STORAGE_TYPE
+              valueFrom:
+                secretKeyRef:
+                  name: cp-object-storage
+                  key: STORAGE_TYPE
+            - name: PG_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pg-creds
+                  key: POSTGRES_PASSWORD
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-creds
+                  key: REDIS_PASSWORD
+            command:
+              - /bin/sh
+              - -c
+              - /script/dbs-backup.sh
+            volumeMounts:
+              - mountPath: "/backup-data"
+                name: backup-storage
+              - mountPath: "/script"
+                name: dbs-backup-script
+                readOnly: true
+              - mountPath: "/etc/secret"
+                name: secret-volume
+                readOnly: true
+          restartPolicy: OnFailure
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: capsule-v2
+          - name: dbs-backup-script
+            configMap:
+              name: dbs-backup-script
+              defaultMode: 0555
+          - name: secret-volume
+            secret:
+              secretName: redis-creds
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: capsule-v2
+  namespace: webapp
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi

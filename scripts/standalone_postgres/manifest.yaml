@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pg2nd4test
+  name: pg2nd4test
+  namespace: postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pg2nd4test
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: pg2nd4test
+    spec:
+      containers:
+        - envFrom:
+          - secretRef:
+              name: pg-creds
+          image: docker.io/postgres:16.0
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/sleep", "infinity"]
+          name: postgresql
+          resources:
+            limits:
+              cpu: "12"
+              memory: 32Gi
+            requests:
+              cpu: "1"
+              memory: 4Gi
+          volumeMounts:
+            - mountPath: /data
+              name: postgres-data
+            - mountPath: /dev/shm
+              name: dshm
+      restartPolicy: Always
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: pg2nd4test
+        - emptyDir:
+            medium: Memory
+            sizeLimit: 2Gi
+          name: dshm
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  finalizers:
+    - kubernetes.io/pvc-protection
+  labels:
+    app: pg2nd4test
+  name: pg2nd4test
+  namespace: postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 40Gi
+  volumeMode: Filesystem
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pg2nd4test
+  name: pg2nd4test
+  namespace: postgres
+spec:
+  internalTrafficPolicy: Cluster
+  ipFamilies:
+  - IPv4
+  ipFamilyPolicy: SingleStack
+  ports:
+  - port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: pg2nd4test
+  sessionAffinity: None
+  type: ClusterIP

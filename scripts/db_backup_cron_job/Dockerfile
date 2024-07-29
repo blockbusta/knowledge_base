@@ -7,7 +7,7 @@ RUN apt-get upgrade -y && apt-get update -y && apt-get install -y \
     bash dnsutils curl iproute2 jq mtr iputils-ping net-tools nginx \
     openssl telnet procps tcpdump tcptraceroute wget postgresql postgresql-contrib
 
-# install kubectl + add kc aliases
+# install kubectl + add aliases
 RUN curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
 RUN chmod +x ./kubectl
 RUN mv ./kubectl /usr/local/bin/kubectl
@@ -44,7 +44,6 @@ RUN apt install -y rsync
 # copy in the backup script and make executable
 COPY ./dbs-backup.sh ./dbs-backup.sh
 RUN chmod +x ./dbs-backup.sh
-
 
 # verify versions
 RUN python --version

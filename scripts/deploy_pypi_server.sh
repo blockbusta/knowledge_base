@@ -8,7 +8,7 @@
 # (5) # define the cluster domain, PYPI server username and protocol (HTTP/S)
 
 ### after all requirements are met, save and execute this file:
-### CLUSTER_DOMAIN="aks-cicd-21332.cicd.me" PYPI_USERNAME="itayosadm1n0s" PROTOCOL="https" bash deploy_pypi_server.sh
+### CLUSTER_DOMAIN="aks-cicd-21332.cicd.me" PYPI_USERNAME="jackosadm1n0s" PROTOCOL="https" bash deploy_pypi_server.sh
 
 # Checks if any var is empty
 variables=("CLUSTER_DOMAIN" "PYPI_USERNAME" "PROTOCOL")

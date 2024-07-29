@@ -22,5 +22,5 @@ managedNodeGroups:
       autoScaler: true
   tags:
     k8s.io/cluster-autoscaler/enabled: 'true'
-    itays.world/baked-beans: 'gravy'
+    jacks.world/baked-beans: 'gravy'
     nodegroup-role: worker

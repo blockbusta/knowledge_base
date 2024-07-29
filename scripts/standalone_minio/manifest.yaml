@@ -100,8 +100,8 @@ spec:
 ---
 apiVersion: v1
 stringData:
-  ACCESS_KEY: Q824h9vGSDFG74gj94MKCOS84V0a7f2a0fnZa
-  SECRET_KEY: WZHu00yVPQNiGIs104ZIHprWx5Qgvog23EzPIs2x6qQvBdpKoo2EMkg2EzmHhb1BUvtFpKTdAKD9r4uI7xR
+  ACCESS_KEY: xxxx
+  SECRET_KEY: zzzz
 kind: Secret
 metadata:
   name: minio-creds

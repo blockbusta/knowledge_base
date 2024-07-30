@@ -1,62 +1,42 @@
 # k8s cheatsheet
 
-# preparation & definition
+## preparation & definition
 
-create the kc alias in current terminal session:
+create alias in current terminal session:
 
 ```bash
-alias kc="kubectl "
+alias k="kubectl"
 ```
 
-<aside>
-⚠️ this alias points to the **** namespace in the kubernetes cluster.
-in case you need a different namespace, such as **default** or **kube-system**, make sure you state it explicitly in the command **OR** create another alias for your own comfort.
-
-</aside>
-
-add the kc alias to bashrc for adding it globally to each new terminal sessions:
+add the alias to bashrc/zshrc:
 
 ```bash
 echo 'alias kc="kubectl "' >> ~/.bashrc
+echo 'alias kc="kubectl "' >> ~/.zshrc
 ```
 
-default kubeconfig path:
+there are few approaches for defining the kubeconfig file you want to work with:
+
+stating it explicitly it in each command:
 
 ```bash
-~/.kube/config
+k--kubeconfig=/home/kcs/blabla.yaml get pods
 ```
 
-<aside>
-⚠️ **“config”** being the file name.
-
-</aside>
-
-there are 2 approaches for defining a kubeconfig file:
-
-**explicit**: defining it in each command
+defining it as the default kubeconfig file per terminal session using env:
 
 ```bash
-kc --kubeconfig=/home/kcs/blabla.yaml get pods
+export KUBECONFIG=/home/kcs/blabla.yaml
 ```
-
-**global**: defining it as the default kubeconfig that kubectl will use (**best practice**)
-
-within the global approach, there are 2 options:
-
-- **set using environment variable**: applies only for the current terminal session
     
-    ```bash
-    export KUBECONFIG=/home/kcs/blabla.yaml
-    ```
+set the kubeconfig file in the default location which applies globally for all terminal sessions
     
-- **set the kubeconfig file in the default location**: applies globally for all terminal sessions
-    
-    ```bash
-    vim ~/.kube/config # then paste the kubeconfig file content and save
-    ```
+```bash
+vim ~/.kube/config
+```
     
 
-# frequently used resources
+## frequently used resources
 
 | object | alias | description |
 | --- | --- | --- |
@@ -76,55 +56,53 @@ within the global approach, there are 2 options:
 | secret |  |  |
 | node | no |  |
 
-# vieweing & displaying
+## vieweing & displaying
 
 describing an object:
 
-```ruby
-kc describe pod POD_NAME
+```bash
+k describe pod POD_NAME
 ```
 
 getting the object’s yaml:
 
-```ruby
-kc get pod POD_NAME -o yaml
+```bash
+k get pod POD_NAME -o yaml
 ```
 
 ### Logs
 
 getting logs from pod:
 
-```ruby
-kc logs POD_NAME -c CONTAINER_NAME
+```bash
+k logs POD_NAME -c CONTAINER_NAME
 ```
 
 if you need logs from a pod which has a single replica in its deployment,
-
 or from a deployment which has multiple replicas, but not any of them needed specifically,
-
 you can refer to the deployment directly, without specifying the exact pod name:
 
-```ruby
-kc logs deploy/app
+```bash
+klogs deploy/app
 ```
 
 to add timestamps for each log line:
 
-```ruby
-kc logs --timestamps deploy/app
+```bash
+klogs --timestamps deploy/app
 ```
 
 to stream logs as they’re printed:
 
-```ruby
-kc logs -f deploy/app
+```bash
+klogs -f deploy/app
 ```
 
-# editing & changing
+## editing & modifying
 
 …
 
-# YAML’s
+## YAML’s
 
 ### apply directly from terminal
 
@@ -178,7 +156,7 @@ spec:
 EOF
 ```
 
-# 🗡️ swiss army knife one-liners 🗡️
+## 🗡️ swiss army knife one-liners 🗡️
 
 
 ### label GPU nodes
@@ -189,11 +167,11 @@ kubectl label nodes <NODE> accelerator=nvidia
 
 ### taint / un-taint nodes
 
-```jsx
+```bash
 kubectl taint nodes <node-name> kubernetes.co.il/priority=spot:NoSchedule
 ```
 
-```jsx
+```bash
 kubectl taint nodes <node-name> kubernetes.co.il/priority:NoSchedule-
 ```
 
@@ -218,13 +196,13 @@ this command will start a pod with the image chosen, and will exec you into its 
 **stock ubuntu**
 
 ```yaml
-kc run -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
+krun -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
 ```
 
 **network debugger**🌶️ (contains common network utilities: `ping`,`nslookup`,`telnet`, etc)
 
 ```bash
-kc run -i --tty network-debugger --image=docker.io/<DOCKER_USERNAME>/swiss_army_knife:latest -- bash
+krun -i --tty network-debugger --image=docker.io/<DOCKER_USERNAME>/swiss_army_knife:latest -- bash
 ```
 
 network debugger as init container:
@@ -256,7 +234,7 @@ brew install yq
 </aside>
 
 ```json
-kc get **<TYPE>** **<NAME>** -o json | jq 'del(.metadata.resourceVersion,.metadata.uid,.metadata.selfLink,.metadata.creationTimestamp,.metadata.annotations,.metadata.generation,.metadata.ownerReferences,.metadata.managedFields,.status)' | yq eval . --prettyPrint
+kget **<TYPE>** **<NAME>** -o json | jq 'del(.metadata.resourceVersion,.metadata.uid,.metadata.selfLink,.metadata.creationTimestamp,.metadata.annotations,.metadata.generation,.metadata.ownerReferences,.metadata.managedFields,.status)' | yq eval . --prettyPrint
 ```
 
 ### batch execute command on several pods
@@ -264,13 +242,13 @@ kc get **<TYPE>** **<NAME>** -o json | jq 'del(.metadata.resourceVersion,.metada
 example: check `nvidia-smi` output on all  jobs
 
 ```bash
-kc get pods -o name | grep job | xargs -I{} kubectl  exec {} -c main -- nvidia-smi
+kget pods -o name | grep job | xargs -I{} kubectl  exec {} -c main -- nvidia-smi
 ```
 
 ### sort pods by age
 
 ```bash
-kc get pods --sort-by=.status.startTime
+kget pods --sort-by=.status.startTime
 ```
 
 ### delete all evicted pods
@@ -283,7 +261,7 @@ kubectl  get pods | grep Evicted | awk '{print $1}' | xargs kubectl  delete pod 
 
 ```yaml
 JSONPATH='{range .items[*]}{@.metadata.name}{"\n"}{@.spec.template.spec.containers[*].resources}{"\n"}{end}' && \
-kc get deploy -o jsonpath="$JSONPATH"
+kget deploy -o jsonpath="$JSONPATH"
 ```
 
 ### save certificate files from TLS certificate secret
@@ -298,14 +276,14 @@ echo $TLS_KEY_B64 | base64 -d > tls.key
 ### create TLS certificate secret
 
 ```yaml
-kc create secret tls istio-ingressgateway-certs \
+kcreate secret tls istio-ingressgateway-certs \
 --key private.key \
 --cert certificate.crt
 ```
 
 ### bonus: check domain certificate expiry date 😻
 
-```python
+```bash
 DOMAIN="openai.com";
 openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts </dev/null 2>/dev/null | openssl x509 -noout -enddate
 ```
@@ -389,7 +367,30 @@ done
 
 ### patch secret using clear text
 
-```
+```bash
 kubectl patch secret my-secret \
 -p '{"stringData": {"my-key": "new-secret-value"}}'
+```
+
+### re-create secret in another namespace
+
+Export the existing secret:
+```bash
+kubectl get secret my-secret -n source-namespace -o yaml > secret_old.yaml
+```
+
+Clean up and modify the YAML (using `yq` utility)
+```bash
+yq eval '
+  .metadata.namespace = "target-namespace" |
+  del(.metadata.creationTimestamp) |
+  del(.metadata.resourceVersion) |
+  del(.metadata.selfLink) |
+  del(.metadata.uid)
+' secret_old.yaml > secret_new.yaml
+```
+
+Create the new secret in the target namespace
+```bash
+kubectl apply -f secret_new.yaml
 ```

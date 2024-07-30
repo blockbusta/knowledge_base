@@ -20,26 +20,23 @@ echo 'alias kc="kubectl "' >> ~/.bashrc
 echo 'alias kc="kubectl "' >> ~/.zshrc
 ```
 
+### Setting kubeconfig file
 there are few approaches for defining the kubeconfig file you want to work with:
 
-stating it explicitly it in each command:
+- stating it explicitly it in each command:
+  ```bash
+  k --kubeconfig=/home/kcs/blabla.yaml get pods
+  ```
 
-```bash
-k --kubeconfig=/home/kcs/blabla.yaml get pods
-```
-
-defining it as the default kubeconfig file per terminal session using env:
-
-```bash
-export KUBECONFIG=/home/kcs/blabla.yaml
-```
-    
-set the kubeconfig file in the default location which applies globally for all terminal sessions
-    
-```bash
-vim ~/.kube/config
-```
-    
+- defining it as the default kubeconfig file per terminal session using env:
+  ```bash
+  export KUBECONFIG=/home/kcs/blabla.yaml
+  ```
+  
+- set the kubeconfig file in the default location which applies globally for all terminal sessions:
+  ```bash
+  vim ~/.kube/config
+  ```
 
 ## frequently used resources
 
@@ -129,47 +126,6 @@ EOF
 
 ## 🗡️ swiss army knife one-liners 🗡️
 
-
-### label GPU nodes
-
-```bash
-kubectl label nodes <NODE> accelerator=nvidia
-```
-
-### taint / un-taint nodes
-
-```bash
-kubectl taint nodes <node-name> kubernetes.co.il/priority=spot:NoSchedule
-```
-
-```bash
-kubectl taint nodes <node-name> kubernetes.co.il/priority:NoSchedule-
-```
-
-### copy files
-
-from local machine to remote pod
-
-```bash
-kubectl cp /local/file/path.txt <DESTINATION_POD_NAME>:/ -c main
-```
-
-copy between 2 remote pods
-
-```bash
-kubectl cp -c main <NAMESPACE>/<SOURCE_POD>:/PATH/TO/FILE <DESTINATION_POD>:/ -c main
-```
-
-## run pod
-
-this command will start a pod with the image chosen, and will exec you into its bash terminal:
-
-**stock ubuntu**
-
-```yaml
-krun -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
-```
-
 ## debug pod 🌶️
 
 this command will "inject" a new container into an existing pod. allowing you to debug that pod without harming its operation:
@@ -187,35 +143,48 @@ kubectl -n kube-system exec -it my-pod -c debugger -- bash
 kubectl  get secret **pg-creds** -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
 ```
 
-### batch execute command on several pods
+### Taints & Labels
 
-example: check `nvidia-smi` output on all  jobs
-
+label GPU nodes
 ```bash
-kget pods -o name | grep job | xargs -I{} kubectl  exec {} -c main -- nvidia-smi
+kubectl label nodes <NODE> accelerator=nvidia
+```
+
+taint node:
+```bash
+kubectl taint nodes <node-name> kubernetes.co.il/priority=spot:NoSchedule
+```
+
+un-taint node:
+```bash
+kubectl taint nodes <node-name> kubernetes.co.il/priority:NoSchedule-
+```
+
+### copy files
+
+from local machine to pod:
+```bash
+kubectl cp /local/file/path.txt <DESTINATION_POD_NAME>:/ -c main
+```
+
+copy between 2 pods:
+```bash
+kubectl cp -c main <NAMESPACE>/<SOURCE_POD>:/PATH/TO/FILE <DESTINATION_POD>:/ -c main
+```
+
+## run pod
+
+this command will start a pod with the image chosen, and will exec you into its bash terminal:
+```bash
+k run -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
 ```
 
 ### sort pods by age
-
 ```bash
 kget pods --sort-by=.status.startTime
 ```
 
-### delete all evicted pods
-
-```bash
-kubectl  get pods | grep Evicted | awk '{print $1}' | xargs kubectl  delete pod $1
-```
-
-### looping thru objects using JSONPATH
-
-```yaml
-JSONPATH='{range .items[*]}{@.metadata.name}{"\n"}{@.spec.template.spec.containers[*].resources}{"\n"}{end}' && \
-kget deploy -o jsonpath="$JSONPATH"
-```
-
 ### save certificate files from TLS certificate secret
-
 ```bash
 TLS_CRT_B64=$(kubectl  get secret ocp-funkyzebra-space-tls -o jsonpath="{.data.tls\.crt}")
 TLS_KEY_B64=$(kubectl  get secret ocp-funkyzebra-space-tls -o jsonpath="{.data.tls\.key}")
@@ -224,15 +193,13 @@ echo $TLS_KEY_B64 | base64 -d > tls.key
 ```
 
 ### create TLS certificate secret
-
-```yaml
-kcreate secret tls istio-ingressgateway-certs \
+```bash
+k create secret tls istio-ingressgateway-certs \
 --key tls.key \
 --cert tls.crt
 ```
 
 ### bonus: check domain certificate expiry date 😻
-
 ```bash
 DOMAIN="openai.com";
 openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts </dev/null 2>/dev/null | openssl x509 -noout -enddate
@@ -268,8 +235,26 @@ kubectl create secret docker-registry **app-registry** \
 oc -n openshift-config patch cm admin-acks --patch '{"data":{"ack-4.11-kube-1.25-api-removals-in-4.12":"true"}}' --type=merge
 ```
 
-### loop to check all external IP’s of cluster
+## loops / batch
 
+### batch execute command on several pods
+for example: check `nvidia-smi` output on all pods named blabla
+```bash
+k get pods -o name | grep blabla | xargs -I{} kubectl exec {} -- nvidia-smi
+```
+
+### delete all evicted pods
+```bash
+kubectl get pods | grep Evicted | awk '{print $1}' | xargs kubectl delete pod $1
+```
+
+### looping thru objects using JSONPATH
+```yaml
+JSONPATH='{range .items[*]}{@.metadata.name}{"\n"}{@.spec.template.spec.containers[*].resources}{"\n"}{end}' && \
+kget deploy -o jsonpath="$JSONPATH"
+```
+
+### check all external IP’s of cluster:
 ```bash
 #!/bin/bash
 
@@ -284,8 +269,7 @@ for POD_NAME in $(kubectl get pods -n $NAMESPACE -o=name); do
 done
 ```
 
-### loop to check times on all nodes (without SSH access)
-
+### check times on all nodes (without SSH access)
 ```bash
 NODE_LIST=$(kubectl get nodes -o jsonpath='{range .items[*]}{@.metadata.name}{" "}{end}')
 

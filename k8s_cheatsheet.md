@@ -199,42 +199,21 @@ this command will start a pod with the image chosen, and will exec you into its 
 krun -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
 ```
 
-**network debugger**🌶️ (contains common network utilities: `ping`,`nslookup`,`telnet`, etc)
+## debug pod 🌶️
 
-```bash
-krun -i --tty network-debugger --image=docker.io/<DOCKER_USERNAME>/swiss_army_knife:latest -- bash
+this command will "inject" a new container into an existing pod. allowing you to debug that pod without harming its operation:
 ```
-
-network debugger as init container:
-
-```bash
-spec:
-  initContainers:
-  - name: network-debugger
-    image: docker.io/<DOCKER_USERNAME>/swiss_army_knife:latest
-    command: ["sleep", "infinity"]
+kubectl -n kube-system debug my-pod -c debugger --image wbitt/network-multitool -- sleep infinity
+```
+exec into that container after its up:
+```
+kubectl -n kube-system exec -it my-pod -c debugger -- bash
 ```
 
 ### get an entire secret decoded at once 🌶️🌶️🌶️🌶️🌶️
 
 ```bash
 kubectl  get secret **pg-creds** -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
-```
-
-### get a clean YAML manifest of an object 🌶️🌶️
-
-<aside>
-⚠️ requires both `jq` and `yq` utilities to run
-
-```json
-brew install jq
-brew install yq
-```
-
-</aside>
-
-```json
-kget **<TYPE>** **<NAME>** -o json | jq 'del(.metadata.resourceVersion,.metadata.uid,.metadata.selfLink,.metadata.creationTimestamp,.metadata.annotations,.metadata.generation,.metadata.ownerReferences,.metadata.managedFields,.status)' | yq eval . --prettyPrint
 ```
 
 ### batch execute command on several pods
@@ -277,8 +256,8 @@ echo $TLS_KEY_B64 | base64 -d > tls.key
 
 ```yaml
 kcreate secret tls istio-ingressgateway-certs \
---key private.key \
---cert certificate.crt
+--key tls.key \
+--cert tls.crt
 ```
 
 ### bonus: check domain certificate expiry date 😻
@@ -289,45 +268,31 @@ openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts </dev/n
 ```
 
 ### delete stubborn namespace with finalizers 🌶️
-
 <aside>
-⚠️ run this only after deleting any visible resource left on that namespace.
-replace `delete-me` with the namespace.
-
+⚠️ run this only after deleting any visible resource left on that namespace. replace `delete-me` with the namespace.
 </aside>
 
-1st terminal:
-
+1st terminal (or use htop in a single terminal):
 ```bash
 kubectl proxy
 ```
 
 2nd terminal:
-
 ```bash
 kubectl get ns **** -o json | \
   jq '.spec.finalizers=[]' | \
   curl -X PUT http://localhost:8001/api/v1/namespaces/****/finalize -H "Content-Type: application/json" --data @-
 ```
 
-### get “all” for real
-
-```bash
-kubectl get all,service,pvc,ingress,configmap,\
-secret,daemonset,statefulset,cronjob --namespace **<namespace>**
-```
-
 ### create docker credentials secret
-
 ```bash
-kubectl  create secret docker-registry **app-registry** \
---docker-server=**docker.io** \
---docker-username=**myuser** \
---docker-password=**mypassword**
+kubectl create secret docker-registry **app-registry** \
+--docker-server=docker.io \
+--docker-username=myuser \
+--docker-password=mypass
 ```
 
 ### acknowledge OCP 4.11 to 4.12 upgrade
-
 ```bash
 oc -n openshift-config patch cm admin-acks --patch '{"data":{"ack-4.11-kube-1.25-api-removals-in-4.12":"true"}}' --type=merge
 ```

@@ -8,6 +8,11 @@ create alias in current terminal session:
 alias k="kubectl"
 ```
 
+for example, an alias to kube-system namespace:
+```bash
+alias ks="kubectl -n kube-system"
+```
+
 add the alias to bashrc/zshrc:
 
 ```bash
@@ -20,7 +25,7 @@ there are few approaches for defining the kubeconfig file you want to work with:
 stating it explicitly it in each command:
 
 ```bash
-k--kubeconfig=/home/kcs/blabla.yaml get pods
+k --kubeconfig=/home/kcs/blabla.yaml get pods
 ```
 
 defining it as the default kubeconfig file per terminal session using env:
@@ -83,19 +88,29 @@ or from a deployment which has multiple replicas, but not any of them needed spe
 you can refer to the deployment directly, without specifying the exact pod name:
 
 ```bash
-klogs deploy/app
+k logs deploy/app
+```
+
+or from a specific container:
+```bash
+k logs deploy/app -c container01
 ```
 
 to add timestamps for each log line:
 
 ```bash
-klogs --timestamps deploy/app
+k logs --timestamps deploy/app
 ```
 
 to stream logs as they’re printed:
 
 ```bash
-klogs -f deploy/app
+k logs -f deploy/app
+```
+
+to show only 100 last rows of output:
+```bash
+k logs --tail 100 deploy/app
 ```
 
 ## editing & modifying
@@ -109,50 +124,6 @@ klogs -f deploy/app
 ```yaml
 kubectl apply -f - <<EOF
 /// YAML-CONTENT ///
-EOF
-```
-
-### PVC
-
-```yaml
-kubectl apply -f - <<EOF
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: nfsv2
-  namespace: my-webapp
-spec:
-  accessModes:
-    - ReadWriteMany
-  resources:
-    requests:
-      storage: 2Gi
-  storageClassName: "nfs-qa"
-EOF
-```
-
-### pod to consume PVC
-
-```yaml
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: Pod
-metadata:
-  name: pvc-consumer-test
-spec:
-  volumes:
-    - name: pvc-vol
-      persistentVolumeClaim:
-        claimName: <PVC>
-  containers:
-    - name: ubuntu
-      image: ubuntu:22.04
-      ports:
-        - containerPort: 80
-          name: "http-server"
-      volumeMounts:
-        - mountPath: "/data/sababa"
-          name: pvc-vol
 EOF
 ```
 
@@ -345,6 +316,7 @@ kubectl get secret my-secret -n source-namespace -o yaml > secret_old.yaml
 ```
 
 Clean up and modify the YAML (using `yq` utility)
+Make sure to replace `target-namespace`:
 ```bash
 yq eval '
   .metadata.namespace = "target-namespace" |

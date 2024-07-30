@@ -138,9 +138,9 @@ kubectl -n kube-system exec -it my-pod -c debugger -- bash
 ```
 
 ### get an entire secret decoded at once 🌶️🌶️🌶️🌶️🌶️
-
 ```bash
-kubectl  get secret **pg-creds** -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
+kubectl get secret my-secret \
+-o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
 ```
 
 ### Taints & Labels

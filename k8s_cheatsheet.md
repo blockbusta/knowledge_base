@@ -315,3 +315,8 @@ Create the new secret in the target namespace
 ```bash
 kubectl apply -f secret_new.yaml
 ```
+
+### check TLS secret domain
+```bash
+kubectl get secret bla-my-cert -o jsonpath="{.data.tls\.crt}" | base64 -d | openssl x509 -noout -subject | sed 's/.*CN=\([^/]*\).*/\1/'
+```

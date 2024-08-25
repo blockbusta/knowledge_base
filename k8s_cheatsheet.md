@@ -126,7 +126,14 @@ EOF
 
 ## 🗡️ swiss army knife one-liners 🗡️
 
-## debug pod 🌶️
+## run pod 🌶️
+
+this command will start a pod with the image chosen, and will exec you into its bash terminal:
+```bash
+k run -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
+```
+
+## debug pod 🌶️🌶️🌶
 
 this command will "inject" a new container into an existing pod. allowing you to debug that pod without harming its operation:
 ```
@@ -170,13 +177,6 @@ kubectl cp /local/file/path.txt <DESTINATION_POD_NAME>:/ -c main
 copy between 2 pods:
 ```bash
 kubectl cp -c main <NAMESPACE>/<SOURCE_POD>:/PATH/TO/FILE <DESTINATION_POD>:/ -c main
-```
-
-## run pod
-
-this command will start a pod with the image chosen, and will exec you into its bash terminal:
-```bash
-k run -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
 ```
 
 ### sort pods by age

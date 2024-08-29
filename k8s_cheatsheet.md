@@ -320,3 +320,15 @@ kubectl apply -f secret_new.yaml
 ```bash
 kubectl get secret bla-my-cert -o jsonpath="{.data.tls\.crt}" | base64 -d | openssl x509 -noout -subject | sed 's/.*CN=\([^/]*\).*/\1/'
 ```
+
+### list nodes resources
+```bash
+kubectl get nodes  "-o=custom-columns=NAME:.metadata.name,CPUs:.status.capacity.cpu,RAM:.status.capacity.memory,NODE-POOL:.metadata.labels.runai/node-pool,GPU-TYPE:.metadata.labels.run\.ai\/type,GPUs:.metadata.labels.nvidia\.com\/gpu\.count,LOCKS:.spec.taints,KUBLET:.status.nodeInfo.kubeletVersion"
+```
+example output:
+```bash
+NAME              CPUs   RAM          NODE-POOL   GPU-TYPE   GPUs     LOCKS                                                                KUBLET
+ip-172-20-10-11   4      16070160Ki   <none>      <none>     <none>   [map[effect:NoSchedule key:node-role.kubernetes.io/control-plane]]   v1.26.4
+ip-172-20-10-20   8      32043512Ki   <none>      <none>     16       <none>                                                               v1.26.4
+ip-172-20-10-30   8      32043520Ki   <none>      <none>     16       <none>                                                               v1.26.4
+```

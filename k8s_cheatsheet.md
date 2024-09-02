@@ -145,9 +145,16 @@ kubectl -n kube-system exec -it my-pod -c debugger -- bash
 ```
 
 ### get an entire secret decoded at once 🌶️🌶️🌶️🌶️🌶️
+using kubectl:
 ```bash
 kubectl get secret my-secret \
 -o go-template='{{range $k,$v := .data}}{{printf "%s: " $k}}{{if not $v}}{{$v}}{{else}}{{$v | base64decode}}{{end}}{{"\n"}}{{end}}'
+```
+
+using kubectl + jq:
+```bash
+kubectl get secret my-secret \
+-o jsonpath="{.data}" | jq -r 'to_entries[] | "\(.key): \(.value | @base64d)"'
 ```
 
 ### Taints & Labels

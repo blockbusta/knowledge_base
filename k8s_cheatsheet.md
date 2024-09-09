@@ -130,7 +130,12 @@ EOF
 
 this command will start a pod with the image chosen, and will exec you into its bash terminal:
 ```bash
-k run -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
+kubectl run -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
+```
+
+## run pod on specific node
+```bash
+kubectl run test-dgx05 --image=nginx --overrides='{"spec": {"nodeName": "dgx05"}}'
 ```
 
 ## debug pod 🌶️🌶️🌶

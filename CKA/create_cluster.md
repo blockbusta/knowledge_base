@@ -346,6 +346,13 @@ now we need to set the same IP CIDR as we used to init the cluster, in weave set
 
 [https://github.com/weaveworks/weave/blob/master/site/kubernetes/kube-addon.md#manually-editing-the-yaml-file](https://github.com/weaveworks/weave/blob/master/site/kubernetes/kube-addon.md#manually-editing-the-yaml-file)
 
+the range is already set in the `kube-apiserver` command flag, i.e
+```
+$ ps -auxww | grep "service-cluster-ip-range"
+
+--service-cluster-ip-range=10.96.0.0/12
+```
+
 we’ll modify it in the weave daemonset:
 
 ```

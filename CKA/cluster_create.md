@@ -1,9 +1,6 @@
 This cluster consists of:
-
 -   1 master node
-    
 -   2 worker nodes
-    
 
 # Provision VM’s
 
@@ -121,7 +118,7 @@ sudo apt-get update
 install containerd packages:
 
 ```
-sudo apt-get install -y containerd.io \
+sudo apt-get install -y containerd.io
 ```
 
 check installation:

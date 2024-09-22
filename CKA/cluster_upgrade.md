@@ -1,5 +1,6 @@
 # upgrade cluster
 https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/
+> helpful video: https://www.youtube.com/watch?v=NgrNxoAGOEs
 
 - from version `1.29.0` to version `1.30.0`
 - using kubeadm

@@ -1,135 +1,87 @@
 # upgrade cluster
 https://kubernetes.io/docs/tasks/administer-cluster/kubeadm/kubeadm-upgrade/
 
-- from version 1.29 to version 1.30
+- from version `1.29.0` to version `1.30.0`
 - using kubeadm
 - 2 ubuntu nodes: **controlplane** and **node01**
 
-### add repo
-**define k8s version**
-
+## add repo & set target version
+set the target minor version:
+```
+KUBERNETES_VERSION="1.30.0"
+```
 edit sources list:
 ```bash
 vim /etc/apt/sources.list.d/kubernetes.list
 ```
-make sure the target version is set, i.e `1.30` in our case:
+make sure the target minor version `1.30` is set:
 ```
 deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /
 ```
 update and check available versions:
 ```bash
 sudo apt update
-sudo apt-cache madison kubeadm
 ```
-for example:
+set the kubeadm version according to available versions:
 ```
-   kubeadm | 1.30.1-1.1 | https://pkgs.k8s.io/core:/stable:/v1.30/deb  Packages
-   kubeadm | 1.30.0-1.1 | https://pkgs.k8s.io/core:/stable:/v1.30/deb  Packages
-   kubeadm | 1.29.9-1.1 | https://pkgs.k8s.io/core:/stable:/v1.29/deb  Packages
-   kubeadm | 1.29.8-1.1 | https://pkgs.k8s.io/core:/stable:/v1.29/deb  Packages
+KUBEADM_VERSION=$(sudo apt-cache madison kubeadm | grep $KUBERNETES_VERSION | awk '{ print $3 }')
 ```
-in this case we want version `1.30.0`, so we'll set it from the list:
+check version:
 ```
-KUBEADM_VERSION="1.30.0-1.1"
+echo $KUBEADM_VERSION
 ```
-### upgrade control plane node
+# upgrade node
 The upgrade procedure on control plane nodes should be executed one node at a time. 
 
 Pick a control plane node that you wish to upgrade first. 
 
-It must have the `/etc/kubernetes/admin.conf` file.
+> It must have the `/etc/kubernetes/admin.conf` file.
+
+## upgrade 1st (or only) control plane node
+
+### upgrade kubeadm:
 ```bash
 sudo apt-mark unhold kubeadm && \
-sudo apt-get update && sudo apt-get install -y kubeadm=$KUBEADM_VERSION && \
+sudo apt-get update && \
+sudo apt-get install -y kubeadm=$KUBEADM_VERSION && \
 sudo apt-mark hold kubeadm
 ```
-
-Verify that the download works and has the expected version:
+Verify upgrade:
 ```
 kubeadm version
 ```
-Verify the upgrade plan:
+
+### check cluster upgrade plan:
 ```
-sudo kubeadm upgrade plan
+sudo kubeadm upgrade plan $KUBERNETES_VERSION
 ```
 
 it'll show what possible upgrades candidates are, and which components should be manually upgraded:
 ```
-controlplane ~ ➜  sudo kubeadm upgrade plan
-[upgrade/config] Making sure the configuration is correct:
-[preflight] Running pre-flight checks.
-[upgrade/config] Reading configuration from the cluster...
-[upgrade/config] FYI: You can look at this config file with 'kubectl -n kube-system get cm kubeadm-config -o yaml'
-[upgrade] Running cluster health checks
+...
 [upgrade] Fetching available versions to upgrade to
 [upgrade/versions] Cluster version: 1.29.0
 [upgrade/versions] kubeadm version: v1.30.0
-I0921 14:43:28.081679   16822 version.go:256] remote version is much newer: v1.31.1; falling back to: stable-1.30
-[upgrade/versions] Target version: v1.30.5
-[upgrade/versions] Latest version in the v1.29 series: v1.29.9
+[upgrade/versions] Target version: 1.30.0
+[upgrade/versions] Latest version in the v1.29 series: 1.30.0
 
 Components that must be upgraded manually after you have upgraded the control plane with 'kubeadm upgrade apply':
 COMPONENT   NODE           CURRENT   TARGET
-kubelet     controlplane   v1.29.0   v1.29.9
-kubelet     node01         v1.29.0   v1.29.9
-
-Upgrade to the latest version in the v1.29 series:
-
-COMPONENT                 NODE           CURRENT    TARGET
-kube-apiserver            controlplane   v1.29.0    v1.29.9
-kube-controller-manager   controlplane   v1.29.0    v1.29.9
-kube-scheduler            controlplane   v1.29.0    v1.29.9
-kube-proxy                               1.29.0     v1.29.9
-CoreDNS                                  v1.10.1    v1.11.1
-etcd                      controlplane   3.5.10-0   3.5.12-0
+kubelet     controlplane   v1.29.0   1.30.0
+kubelet     node01         v1.29.0   1.30.0
+...
 
 You can now apply the upgrade by executing the following command:
 
-        kubeadm upgrade apply v1.29.9
-
-_____________________________________________________________________
-
-Components that must be upgraded manually after you have upgraded the control plane with 'kubeadm upgrade apply':
-COMPONENT   NODE           CURRENT   TARGET
-kubelet     controlplane   v1.29.0   v1.30.5
-kubelet     node01         v1.29.0   v1.30.5
-
-Upgrade to the latest stable version:
-
-COMPONENT                 NODE           CURRENT    TARGET
-kube-apiserver            controlplane   v1.29.0    v1.30.5
-kube-controller-manager   controlplane   v1.29.0    v1.30.5
-kube-scheduler            controlplane   v1.29.0    v1.30.5
-kube-proxy                               1.29.0     v1.30.5
-CoreDNS                                  v1.10.1    v1.11.1
-etcd                      controlplane   3.5.10-0   3.5.12-0
-
-You can now apply the upgrade by executing the following command:
-
-        kubeadm upgrade apply v1.30.5
-
-Note: Before you can perform this upgrade, you have to update kubeadm to v1.30.5.
-
-_____________________________________________________________________
-
-
-The table below shows the current state of component configs as understood by this version of kubeadm.
-Configs that have a "yes" mark in the "MANUAL UPGRADE REQUIRED" column require manual config upgrade or
-resetting to kubeadm defaults before a successful upgrade can be performed. The version to manually
-upgrade to is denoted in the "PREFERRED VERSION" column.
-
-API GROUP                 CURRENT VERSION   PREFERRED VERSION   MANUAL UPGRADE REQUIRED
-kubeproxy.config.k8s.io   v1alpha1          v1alpha1            no
-kubelet.config.k8s.io     v1beta1           v1beta1             no
-_____________________________________________________________________
-
+        kubeadm upgrade apply 1.30.0
 ```
+As we see, the upgrade plan was checked, and we can go ahead, using the command provided. Just note that kubelet & kubectl require manual upgrade afterwards.
 
-**upgrade node:**
+### upgrade cluster:
 
 run:
 ```
-kubeadm upgrade apply 1.30.0
+kubeadm upgrade apply $KUBERNETES_VERSION
 ```
 this can take a few minutes. Once the command finishes you should see:
 ```
@@ -137,22 +89,73 @@ this can take a few minutes. Once the command finishes you should see:
 
 [upgrade/kubelet] Now that your control plane is upgraded, please proceed with upgrading your kubelets if you haven't already done so.
 ```
+### upgrade kubelet + kubectl:
+```
+sudo apt-mark unhold kubelet kubectl && \
+sudo apt-get update && sudo apt-get install -y \
+kubelet=$KUBEADM_VERSION kubectl=$KUBEADM_VERSION && \
+sudo apt-mark hold kubelet kubectl
+```
+restart the system-daemon and the kubelet service:
+```
+sudo systemctl daemon-reload
+sudo systemctl restart kubelet
+```
+check upgrade:
+```
+kubectl version
+kubelet --version
+```
+### upgrade CNI provider plugin:
+check if your netwrok plugin requires an upgrade too.
 
+in this case, we have **weave** deployed, and it was set to use 1.29, so we'll upgrade it to the corresponding version for 1.30:
+```
+kubectl apply -f https://reweave.azurewebsites.net/k8s/v1.30/net.yaml
+```
+for this case, there is the env `IPALLOC_RANGE` that we must add to the ds after weave is upgraded:
+```
+        - name: IPALLOC_RANGE
+          value: 10.244.0.0/16
+```
 
-### drain node01
+## upgrade rest of control plane nodes:
+>in this case we have a single control plane node
+
+Do the same as you did for the first control plane node - BUT:
+-  use: `sudo kubeadm upgrade node`,
+
+    instead of: `sudo kubeadm upgrade apply`
+- calling `kubeadm upgrade plan` & upgrading the CNI provider plugin is no longer needed
+
+## upgrade worker node (node01)
+https://v1-30.docs.kubernetes.io/docs/tasks/administer-cluster/kubeadm/upgrading-linux-nodes/
+
+same as before, but some steps differ so pay attention:
+
+1. set version and repo
+2. upgrade kubeadm
+3. continue to next step
+
+### get upgrade config from control plane:
+```
+sudo kubeadm upgrade node
+```
+### drain worker node (node01)
 > reference: https://v1-30.docs.kubernetes.io/docs/tasks/administer-cluster/safely-drain-node/
 ```bash
 kubectl drain --ignore-daemonsets node01
 ```
 
-### reschedule node01 deploys on controlplane
-```bash
-...
-```
+4. upgrade kubelet + kubectl
 
-### upgrade node01
-```bash
-...
+> verify node01 existing workloads have been rescheduled on other available node (controlplane)
+
+
+
+uncordon the node:
+```
+kubectl uncordon node01
 ```
 
 ### verify upgrade

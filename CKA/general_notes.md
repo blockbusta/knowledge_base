@@ -1,7 +1,6 @@
-## to edit:
-
-```yaml
-# create static pod
+# general notes for CKA exam
+### create static pod
+```
 cat <<EOF >/etc/kubernetes/manifests/static-web.yaml
 apiVersion: v1
 kind: Pod
@@ -13,11 +12,12 @@ spec:
       image: busybox
       command: ["sleep", "1000"]
 EOF
-
+```
+```
 systemctl restart kubelet
-
-# expose deployment using nodeport
-k apply -f - <<EOF
+```
+### expose deployment using nodeport
+```
 apiVersion: v1
 kind: Service
 metadata:
@@ -30,13 +30,13 @@ spec:
     app: hr-web-app
   ports:
     - protocol: TCP
-      port: 8080          # The port on which the service is exposed internally
-      targetPort: 8080     # The port on which the application is listening in the pod
-      nodePort: 30082      # The port that will be exposed on the node
-EOF
+      port: 8080          ### The port on which the service is exposed internally
+      targetPort: 8080     ### The port on which the application is listening in the pod
+      nodePort: 30082      ### The port that will be exposed on the node
+```
 
-# create hostpath volume
-k apply -f - <<EOF
+### create hostpath volume
+```
 apiVersion: v1
 kind: PersistentVolume
 metadata:
@@ -48,17 +48,20 @@ spec:
     - ReadWriteMany
   hostPath:
     path: /pv/data-analytics
-EOF
+```
 
-# etcd backup:
-export ETCDCTL_API=3
+### etcd backup:
+```
+export ETCDCTL_API=3;
 etcdctl --endpoints=https://127.0.0.1:2379 \
   --cacert=/etc/kubernetes/pki/etcd/ca.crt \
   --cert=/etc/kubernetes/pki/etcd/server.crt \
   --key=/etc/kubernetes/pki/etcd/server.key \
-  snapshot save /opt/etcd-backup.db
-
-# create pod with emptydir volume
+  snapshot save /opt/etcd-backup.db;
+ls -lah /opt/etcd-backup.db
+```
+### create pod with emptydir volume
+```
 apiVersion: v1
 kind: Pod
 metadata:
@@ -73,8 +76,9 @@ spec:
   volumes:
   - name: main-vol
     emptyDir: {}
-
-# create pod with system_time capabilites
+```
+### create pod with system_time capabilites
+```
 apiVersion: v1
 kind: Pod
 metadata:
@@ -87,8 +91,9 @@ spec:
       capabilities:
         add: ["SYS_TIME"]
     command: ["sleep", "4800"]
-
-# modify pod mainfest to mount pv
+```
+### modify pod mainfest to mount pv
+```
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -120,26 +125,33 @@ spec:
       claimName: my-pvc
   dnsPolicy: ClusterFirst
   restartPolicy: Always
-
+```
+```
 k exec -it use-pv -- df -h
-
-# create deploy then change image using rolling update
+```
+### create deploy then change image using rolling update
+```
 kubectl create deployment nginx-deploy --image=nginx:1.16 --replicas=1
 kubectl set image deployment/nginx-deploy nginx=nginx:1.17
 kubectl rollout status deployment/nginx-deploy
-
-# Create a new user called john. Grant him access to the cluster. 
-# John should have permission to create, list, get, update and delete pods in the development namespace .
-# The private key exists in the location: /root/CKA/john.key and csr at /root/CKA/john.csr.
-# Important Note: As of kubernetes 1.19, the CertificateSigningRequest object expects a signerName.
-
+kubectl get deploy -o wide
+```
+### RBAC basics task:
+> Create a new user called john. Grant him access to the cluster. 
+> John should have permission to create, list, get, update and delete pods in the development namespace .
+> The private key exists in the location: /root/CKA/john.key and csr at /root/CKA/john.csr.
+> Important Note: As of kubernetes 1.19, the CertificateSigningRequest object expects a signerName.
+```
 kubectl --namespace=development create role developer --resource=pods --verb=create,list,get,update,delete
 kubectl --namespace=development create rolebinding developer-role-binding --role=developer --user=john
-
-# You can encode the CSR file with:
-# grab the encoded csr, and place in spec.request, using:
-# cat /root/CKA/john.csr | base64 | tr -d '\n'
-
+```
+You can encode the CSR file with:
+grab the encoded csr, and place in spec.request, using:
+```
+cat /root/CKA/john.csr | base64 | tr -d '\n'
+```
+CSR manifest:
+```
 apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
 metadata:
@@ -151,29 +163,37 @@ spec:
   - digital signature
   - key encipherment
   - client auth
-
-# auth csr & verify permissions
+```
+auth csr & verify permissions
+```
 kubectl certificate approve john-developer
 kubectl auth can-i update pods --as=john --namespace=development
-
-# create pod ...
-
+```
+### create pod ...
+```
 kubectl run nginx-resolver --image=nginx --restart=Never --port=80
 kubectl label pod nginx-resolver app=nginx-resolver
-
+```
+?
+```
 kubectl expose pod nginx-resolver --name=nginx-resolver-service --port=80 --target-port=80 --type=ClusterIP
-
+```
+DNS stuff?
+```
 k run dns-check --image=busybox:1.28 --command -- sleep 1000000
 
 k exec -it dns-check -- nslookup 10-244-192-4.default.pod > /root/CKA/nginx.pod
 k exec -it dns-check -- nslookup nginx-resolver-service > /root/CKA/nginx.svc
+```
 
-# important: pod names aren't resolvable! replace pod ip dots with hyphen
-# nslookup P-O-D-I-P.default.pod
+> REMEMBER: pod names aren't resolvable! replace pod ip dots with hyphen:
 
-### couldnt resolve podname??
+> ```nslookup P-O-D-I-P.namespace.pod```
 
-# create static pod on node01
+> ```nslookup 10-244-5-7.default.pod```
+
+### create static pod on node01
+```
 ssh node01
 
 cd /etc/kubernetes/manifests
@@ -195,17 +215,20 @@ spec:
           containerPort: 80
           protocol: TCP
   restartPolicy: Always
-
-# if static pod doesnt create - check static pod path in kubelet config:
+```
+### if static pod doesnt create - check static pod path in kubelet config:
+```
 ps -ef | grep kubelet | grep config
 cat /var/lib/kubelet/config.yaml | grep -i static
-
-# if not there, add and restart kubelet
+```
+### if not there, add and restart kubelet
+```
 echo "staticPodPath: /etc/kubernetes/manifests" >> /var/lib/kubelet/config.yaml
 systemctl restart kubelet
-
-# exam 3 question 1
-# create sa, cluster role with list pv, then assign it to pod, and verify permissions
+```
+### exam 3 question 1
+### create sa, cluster role with list pv, then assign it to pod, and verify permissions
+```
 kubectl create serviceaccount pvviewer
 kubectl --namespace=development create clusterrole pvviewer-role --resource=persistentvolumes --verb=list
 kubectl --namespace=development create clusterrolebinding pvviewer-role-binding --clusterrole=pvviewer-role --user=pvviewer
@@ -223,18 +246,21 @@ spec:
   serviceAccountName: pvviewer
 
 kubectl auth can-i list persistentvolumes --as=pvviewer
-
-# exam 3 question 2
-# List the InternalIP of all nodes of the cluster. Save the result to a file /root/CKA/node_ips.
+```
+### exam 3 question 2
+> List the InternalIP of all nodes of the cluster. Save the result to a file /root/CKA/node_ips.
+```
 InternalIP of controlplane<space>InternalIP of node01
 
 kubectl get nodes -o jsonpath='{.items[*].status.addresses[?(@.type=="InternalIP")].address}' > /root/CKA/node_ips
+```
+### exam 3 question 3
+> Create a pod called multi-pod with two containers.
 
-# exam 3 question 3
-# Create a pod called multi-pod with two containers.
-# Container 1: name: alpha, image: nginx
-# Container 2: name: beta, image: busybox, command: sleep 4800
+> Container 1: name: alpha, image: nginx
 
+> Container 2: name: beta, image: busybox, command: sleep 4800
+```
 apiVersion: v1
 kind: Pod
 metadata:
@@ -252,12 +278,14 @@ spec:
       env:
       - name: name
         value: beta
+```
+### exam 3 question 4
+> Create a Pod called non-root-pod , image: redis:alpine
 
-# exam 3 question 4
-# Create a Pod called non-root-pod , image: redis:alpine
-# runAsUser: 1000
-# fsGroup: 2000
+> runAsUser: 1000
 
+> fsGroup: 2000
+```
 apiVersion: v1
 kind: Pod
 metadata:
@@ -269,10 +297,10 @@ spec:
   containers:
     - name: non-root-pod
       image: redis:alpine
-
-# exam 3 question 5
-# Create NetworkPolicy, by the name ingress-to-nptest that allows incoming connections to the service over port 80.
-
+```
+### exam 3 question 5
+> Create NetworkPolicy, by the name ingress-to-nptest that allows incoming connections to the service over port 80.
+```
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -281,17 +309,17 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      run: np-test-1  # Ensure this label matches your pods' labels
+      run: np-test-1  ### Ensure this label matches your pods' labels
   policyTypes:
     - Ingress
   ingress:
     - from:
-        - podSelector: {}  # Allows traffic from any pod
+        - podSelector: {}  ### Allows traffic from any pod
       ports:
         - protocol: TCP
           port: 80
 ---
-apiVersion: networking.k8s.io/v1 # and allow dns resolve too
+apiVersion: networking.k8s.io/v1 ### and allow dns resolve too
 kind: NetworkPolicy
 metadata:
   name: allow-dns
@@ -299,23 +327,23 @@ metadata:
 spec:
   podSelector:
     matchLabels:
-      run: debug # pod from which nslookup is ran
+      run: debug ### pod from which nslookup is ran
   policyTypes:
     - Egress
   egress:
     - to:
       - ipBlock:
-          cidr: 10.96.0.10/32 # Replace with the DNS service IP
+          cidr: 10.96.0.10/32 ### Replace with the DNS service IP
       ports:
       - protocol: UDP
         port: 53
-
-# create ingress
-
+```
+### create ingress
+```
 kubectl create ingress ingress-test --rule="wear.my-online-store.com/wear*=wear-service:80"
-
-# pay ingress
-
+```
+### pay ingress
+```
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -342,12 +370,9 @@ spec:
               number: 8080
         path: /wear
         pathType: Prefix
-# status:
-#   loadBalancer:
-#     ingress:
-#     - ip: 10.105.15.126
+```
 
-# install k8s:
+### steps to install k8s:
 - create vm (using vagrant)
 - install containerd
 - configure cgroup
@@ -357,28 +382,27 @@ spec:
 - join worker nodes (kubeadm join)
 
 systemctl status containerd
-cat /etc/os-release
 
-sudo apt-get update
-sudo apt-get install -y kubelet=1.31.0-1.1 kubeadm=1.31.0-1.1
-sudo apt-mark hold kubelet kubeadm
-
-# If the directory `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
-# sudo mkdir -p -m 755 /etc/apt/keyrings
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.30/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
-
-# This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.30/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
-
-sudo apt-get update
-
-sudo apt-get install -y kubeadm=1.30.0-1.1 kubelet=1.30.0-1.1
-
-kubeadm init \
---pod-network-cidr=10.244.0.0/16 \
---apiserver-advertise-address=192.18.84.12 \
---apiserver-cert-extra-sans=controlplane
-
-kubeadm join 192.18.84.12:6443 --token qzaojz.mqbdjzveyq95tz6t \
-        --discovery-token-ca-cert-hash sha256:3b240f31a1cd77be725d3c8c396d61af6cbad3965913016c486848eb1b93c15e 
+### create pod with red-only mounted secret
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: secret-1401
+  namespace: admin1401
+spec:
+  containers:
+    - name: secret-1401
+      image: busybox
+      command: 
+      - sleep
+      - "4800"
+      volumeMounts:
+      - name: secret-volume
+        mountPath: /etc/secret-volume
+        readOnly: true
+  volumes:
+  - name: secret-volume
+    secret:
+      secretName: dotfile-secret
 ```

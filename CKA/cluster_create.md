@@ -1,21 +1,19 @@
-This cluster consists of:
--   1 master node
--   2 worker nodes
-
+# Specs:
+- k8s 1.31
+- ubuntu nodes (1 master + 2 workers)
 # Provision VM’s
-
+## install virtualbox and vagrant
 **Virtualbox**
-
-hypervisor for VM’s, running the VM’s
+> hypervisor for VM’s, running the VM’s
 
 install virtualbox: [https://www.virtualbox.org/wiki/Downloads](https://www.virtualbox.org/wiki/Downloads)
 
 **Vagrant**
+> automation tool for provisioning VM’s, relies on hypervisor (Virtualbox)
 
-automation tool for provisioning VM’s, relies on hypervisor (Virtualbox)
 Install vagrant: [https://developer.hashicorp.com/vagrant/install](https://developer.hashicorp.com/vagrant/install)
 
-modify Vagrantfile:
+then modify Vagrantfile:
 
 ```
 https://github.com/kodekloudhub/certified-kubernetes-administrator-course/blob/master/kubeadm-clusters/virtualbox/Vagrantfile
@@ -25,11 +23,11 @@ $ vim kubeadm-clusters/virtualbox/Vagrantfile
 
 key configurations in Vagrantfile:
 
--   NUM_MASTER_NODE = how many master nodes, 1 by default
+-   `NUM_MASTER_NODE` = how many master nodes, 1 by default
     
--   NUM_WORKER_NODE = how many worker nodes, 2 by default
+-   `NUM_WORKER_NODE` = how many worker nodes, 2 by default
     
--   IP_NW = the network IP range used, 192.168.56. by default
+-   `IP_NW` = the network IP range used, 192.168.56. by default
     
 
 check vagrant status:
@@ -207,45 +205,46 @@ sudo apt-get update
 sudo apt-get install -y apt-transport-https ca-certificates curl gpg
 ```
 
-Download the public signing key for the Kubernetes package repos:  
-
-note the k8s version neede should be changed in all following commands!
-
+set the k8s version:
 ```
-# If the directory `/etc/apt/keyrings` does not exist, it should be created before the curl command, read the note below.
-# sudo mkdir -p -m 755 /etc/apt/keyrings
-curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+KUBERNETES_VERSION="1.31"
+```
+
+Download the public signing key for the Kubernetes package repos:
+> If the directory `/etc/apt/keyrings` does not exist, it should be created before the curl command:
+
+> `sudo mkdir -p -m 755 /etc/apt/keyrings`
+```bash
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v$KUBERNETES_VERSION/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
 ```
 
 Add the appropriate Kubernetes apt repo:
-
+> This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list
+```bash
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v$KUBERNETES_VERSION/deb/ /' |\
+sudo tee /etc/apt/sources.list.d/kubernetes.list
 ```
-# This overwrites any existing configuration in /etc/apt/sources.list.d/kubernetes.list
-echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+Update index and retrieve version list:
 ```
-
-Update index, install kubelet, kubeadm and kubectl, and pin their version (prevents auto-updates):
-
-this will install latest available version by default
-
+sudo apt-get update;
+sudo apt-cache madison kubeadm | grep $KUBERNETES_VERSION
 ```
-sudo apt-get update
-sudo apt-get install -y kubelet kubeadm kubectl
+select the desired patch-level version, and set in var:
+```
+KUBEADM_VERSION="1.31.0-1-1"
+```
+install kubelet, kubeadm and kubectl, and pin their version (prevents auto-updates):
+```
+sudo apt-get update && sudo apt-get install -y \
+kubelet=$KUBEADM_VERSION \
+kubeadm=$KUBEADM_VERSION \
+kubectl=$KUBEADM_VERSION && \
 sudo apt-mark hold kubelet kubeadm kubectl
 ```
-
-(**Optional**) if specific version is required:
-
-```
-sudo apt-get install -y kubeadm=1.30.0-1.1 kubelet=1.30.0-1.1
-```
-
 (**Optional**) Enable the kubelet service before running kubeadm:
-
 ```
 sudo systemctl enable --now kubelet
 ```
-
 verify install:
 
 ```
@@ -328,7 +327,7 @@ out of all options, we’ll install Weave:
 [https://github.com/rajch/weave#using-weave-on-kubernetes](https://github.com/rajch/weave#using-weave-on-kubernetes)
 
 ```
-kubectl apply -f https://reweave.azurewebsites.net/k8s/v1.29/net.yaml
+kubectl apply -f https://reweave.azurewebsites.net/k8s/v1.31/net.yaml
 ```
 
 change the k8s version number accordingly.

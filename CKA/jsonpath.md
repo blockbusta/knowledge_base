@@ -1,4 +1,5 @@
 > visual aid to better understand queries: https://jsonpath.com/
+> point and click to get jpath: https://jsonpathfinder.com/
 
 ### get specific items from list:
 `data.json`
@@ -88,3 +89,7 @@ output:
 master node01
 4 4
 ```
+
+
+
+k -n admin2406 get deploy --sort-by=.metadata.name -o custom-columns=DEPLOYMENT:.metadata.name,CONTAINER_IMAGE:.spec.template.spec.containers[0].image,READY_REPLICAS:.status.readyReplicas,NAMESPACE:.metadata.namespace

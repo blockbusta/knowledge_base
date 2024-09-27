@@ -182,7 +182,7 @@ check status:
 sudo systemctl status containerd
 ```
 
-# Install k8s tools
+# Install k8s binaries
 
 [https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#k8s-install-0](https://kubernetes.io/docs/setup/production-environment/tools/kubeadm/install-kubeadm/#k8s-install-0)
 

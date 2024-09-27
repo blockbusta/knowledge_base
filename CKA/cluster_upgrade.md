@@ -164,3 +164,29 @@ kubectl uncordon node01
 systemctl status kubelet
 journalctl -xeu kubelet
 ```
+
+# awesome command
+recreate `kubeadm join` command on **ctrl plane node**, to run on a **worker node** that was upgraded manually separatly and wasn't initialized
+```
+kubeadm token create --print-join-command
+```
+
+check kube api server certificate using openssl
+```
+openssl x509 -in /etc/kubernetes/pki/apiserver.crt -noout -dates
+```
+
+check all certificates using kubeadm
+```
+kubeadm certs check-expiration
+```
+
+check only apiserver certificate using kubeadm
+```
+kubeadm certs check-expiration kubeapiserver
+```
+
+renew certs
+```
+kubeadm certs renew
+```

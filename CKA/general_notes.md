@@ -1,7 +1,7 @@
 # general notes for CKA exam
 ### create static pod
+https://kubernetes.io/docs/tasks/configure-pod-container/static-pod/
 ```
-cat <<EOF >/etc/kubernetes/manifests/static-web.yaml
 apiVersion: v1
 kind: Pod
 metadata:
@@ -11,13 +11,29 @@ spec:
     - name: static-busybox
       image: busybox
       command: ["sleep", "1000"]
-EOF
 ```
+create manifest file in static pod dir:
+```
+cat <<EOF >/etc/kubernetes/manifests/static-web.yaml
+```
+restart kubelet to apply changes in manifest:
 ```
 systemctl restart kubelet
 ```
-### expose deployment using nodeport
+if static pod doesnt create - check static pod path in kubelet config:
 ```
+ps -ef | grep kubelet | grep config
+cat /var/lib/kubelet/config.yaml | grep -i static
+```
+if not there, add and restart kubelet
+```
+echo "staticPodPath: /etc/kubernetes/manifests" >> /var/lib/kubelet/config.yaml
+systemctl restart kubelet
+```
+
+### expose deployment using nodeport
+https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport
+```yaml
 apiVersion: v1
 kind: Service
 metadata:
@@ -36,6 +52,7 @@ spec:
 ```
 
 ### create hostpath volume
+https://kubernetes.io/docs/concepts/storage/volumes/#hostpath
 ```
 apiVersion: v1
 kind: PersistentVolume
@@ -49,18 +66,8 @@ spec:
   hostPath:
     path: /pv/data-analytics
 ```
-
-### etcd backup:
-```
-export ETCDCTL_API=3;
-etcdctl --endpoints=https://127.0.0.1:2379 \
-  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
-  --cert=/etc/kubernetes/pki/etcd/server.crt \
-  --key=/etc/kubernetes/pki/etcd/server.key \
-  snapshot save /opt/etcd-backup.db;
-ls -lah /opt/etcd-backup.db
-```
 ### create pod with emptydir volume
+https://kubernetes.io/docs/concepts/storage/volumes/#emptydir
 ```
 apiVersion: v1
 kind: Pod
@@ -77,7 +84,23 @@ spec:
   - name: main-vol
     emptyDir: {}
 ```
-### create pod with system_time capabilites
+### etcd backup:
+https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#snapshot-using-etcdctl-options
+```bash
+export ETCDCTL_API=3;
+etcdctl --endpoints=https://127.0.0.1:2379 \
+  --cacert=/etc/kubernetes/pki/etcd/ca.crt \
+  --cert=/etc/kubernetes/pki/etcd/server.crt \
+  --key=/etc/kubernetes/pki/etcd/server.key \
+  snapshot save /opt/etcd-backup.db
+```
+verify snapshot file created:
+```
+ls -lah /opt/etcd-backup.db
+```
+
+### create pod with `system_time` capabilites
+https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-capabilities-for-a-container
 ```
 apiVersion: v1
 kind: Pod
@@ -93,6 +116,7 @@ spec:
     command: ["sleep", "4800"]
 ```
 ### modify pod mainfest to mount pv
+https://kubernetes.io/docs/concepts/storage/volumes/#using-subpath
 ```
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -126,31 +150,56 @@ spec:
   dnsPolicy: ClusterFirst
   restartPolicy: Always
 ```
-```
-k exec -it use-pv -- df -h
-```
 ### create deploy then change image using rolling update
+https://kubernetes.io/docs/concepts/workloads/controllers/deployment/
+
+create deploy
 ```
 kubectl create deployment nginx-deploy --image=nginx:1.16 --replicas=1
+```
+set new image
+```
 kubectl set image deployment/nginx-deploy nginx=nginx:1.17
+```
+check deployment rollout status
+```
 kubectl rollout status deployment/nginx-deploy
+```
+check deploy image has updated
+```
 kubectl get deploy -o wide
 ```
 ### RBAC basics task:
 > Create a new user called john. Grant him access to the cluster. 
+
 > John should have permission to create, list, get, update and delete pods in the development namespace .
-> The private key exists in the location: /root/CKA/john.key and csr at /root/CKA/john.csr.
+
+> Private key 
+> - key location: `/root/CKA/john.key` 
+> - csr location: `/root/CKA/john.csr`
+
 > Important Note: As of kubernetes 1.19, the CertificateSigningRequest object expects a signerName.
+
+Create role:
+
+https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_role/
 ```
 kubectl --namespace=development create role developer --resource=pods --verb=create,list,get,update,delete
+```
+Create Role Binding:
+
+https://kubernetes.io/docs/reference/kubectl/generated/kubectl_create/kubectl_create_rolebinding/
+```
 kubectl --namespace=development create rolebinding developer-role-binding --role=developer --user=john
 ```
-You can encode the CSR file with:
-grab the encoded csr, and place in spec.request, using:
+Encode the CSR file:
 ```
 cat /root/CKA/john.csr | base64 | tr -d '\n'
 ```
+grab the encoded csr, and place in spec.request, using:
+
 CSR manifest:
+https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/#create-certificatessigningrequest
 ```
 apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
@@ -165,6 +214,8 @@ spec:
   - client auth
 ```
 auth csr & verify permissions
+
+https://kubernetes.io/docs/reference/access-authn-authz/certificate-signing-requests/#approval-rejection-kubectl
 ```
 kubectl certificate approve john-developer
 kubectl auth can-i update pods --as=john --namespace=development
@@ -192,40 +243,7 @@ k exec -it dns-check -- nslookup nginx-resolver-service > /root/CKA/nginx.svc
 
 > ```nslookup 10-244-5-7.default.pod```
 
-### create static pod on node01
-```
-ssh node01
 
-cd /etc/kubernetes/manifests
-
-vim nginx-critical.yaml
-
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx-critical
-  labels:
-    app: nginx
-spec:
-  containers:
-    - name: web
-      image: nginx
-      ports:
-        - name: web
-          containerPort: 80
-          protocol: TCP
-  restartPolicy: Always
-```
-### if static pod doesnt create - check static pod path in kubelet config:
-```
-ps -ef | grep kubelet | grep config
-cat /var/lib/kubelet/config.yaml | grep -i static
-```
-### if not there, add and restart kubelet
-```
-echo "staticPodPath: /etc/kubernetes/manifests" >> /var/lib/kubelet/config.yaml
-systemctl restart kubelet
-```
 ### exam 3 question 1
 ### create sa, cluster role with list pv, then assign it to pod, and verify permissions
 ```
@@ -406,3 +424,12 @@ spec:
     secret:
       secretName: dotfile-secret
 ```
+
+### configure liveness & readiness probes
+?
+
+### create ds using kubectl
+
+### topologykey
+
+### create SA, role, rolebinding, then verify the permissions with "can-i"

@@ -1,0 +1,48 @@
+# first np:
+# - allows all incoming traffic
+# - allows outgoing traffic only to:
+# - - pods on space2 ns
+# - - port 53 (TCP/UDP)
+# 2nd np:
+# - allows incoming traffic only to:
+# - - pod on space2 ns
+# - allows all outgoing traffic
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: np
+  namespace: space1
+spec:
+  policyTypes:
+  - Egress
+  - Ingress
+  ingress:
+  - {}
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: space2
+  - to:
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: np
+  namespace: space2
+spec:
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: space1
+  egress:
+  - {}

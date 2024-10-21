@@ -1,14 +1,12 @@
+
 # OpenShift console credentials rotation
 
-<aside>
-👉🏻 this is useful if the password got lost or forgotten, but you still have access to the cluster
+> 👉🏻 in case the password to the `kubeadmin` user got lost or forgotten
 
-</aside>
+1. go online playground:
+https://go.dev/play/
 
-run this go script to generate the password:
-
-[https://go.dev/play/p/D8c4P90x5du](https://go.dev/play/p/D8c4P90x5du)
-
+2. run this script:
 ```go
 package main
 
@@ -17,6 +15,7 @@ import (
 	b64 "encoding/base64"
 	"fmt"
 	"math/big"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -67,17 +66,17 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
+	hash_enc := b64.StdEncoding.EncodeToString([]byte(hash))
 	fmt.Printf("Actual Password: %s\n", password)
 	fmt.Printf("Hashed Password: %s\n", hash)
-	fmt.Printf("Patch this string in secret: %s", b64.StdEncoding.EncodeToString([]byte(hash)))
+	fmt.Printf("Secret string: %s\n\n", hash_enc)
+	fmt.Printf("run this kubectl patch command:\n\n")
+	command := `kubectl -n kube-system patch secret kubeadmin -p='{"data":{"kubeadmin":"STR2PATCH"}}'`
+	command = strings.Replace(command, "STR2PATCH", hash_enc, 1)
+	fmt.Println(command)
 }
 ```
 
-patch the kubeadmin secret with the value printed in “`Patch this string in secret`”
-
-```go
-kubectl -n kube-system patch secret kubeadmin \
--p='{"data":{"kubeadmin":"**STRING_TO_PATCH**"}}'
-```
-
-login to openshift web console with `kubeadmin` username, and the value printed in “`Actual Password`” as password
+3. "**Actual Password**" is the new password
+4. run the kubectl patch command generated to apply it
+5. login to openshift web console with `kubeadmin` and the new password

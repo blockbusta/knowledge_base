@@ -3,7 +3,7 @@
 ### apply this yaml:
 
 ```yaml
-kc apply -f - <<EOF
+kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
@@ -23,7 +23,7 @@ EOF
 exec to pod:
 
 ```bash
-kc exec -it podman-ops -- bash
+kubectl exec -it podman-ops -- bash
 ```
 
 from the pod terminal, you can execute all **podman commands (same as with docker)**

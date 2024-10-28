@@ -13,7 +13,11 @@ spec:
         job: gpu-test-job
     spec:
       containers:
-      - command: ["sleep","infinity"]
+      - command: ["/bin/sh", "-c"]
+        args:
+          - apt-get update && apt-get install -y wget &&
+            wget -q -O /tmp/script.py https://raw.githubusercontent.com/itaynvn-runai/scripts/refs/heads/main/gpu_utilizer_pytorch.py &&
+            python /tmp/script.py
         image: pytorch/pytorch:2.5.0-cuda12.1-cudnn9-runtime
         imagePullPolicy: Always
         name: gpu-container
@@ -24,10 +28,9 @@ spec:
             memory: 2G
           requests:
             nvidia.com/gpu: 1
-            cpu: 1
-            memory: 2G
+            cpu: 100m
+            memory: 100Mi
       restartPolicy: Always
-      securityContext: {}
       tolerations:
       - effect: NoSchedule
         key: nvidia.com/gpu

@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gpu-test-job
-  namespace: gpu-test
 spec:
   selector:
     matchLabels:

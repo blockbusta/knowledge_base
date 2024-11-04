@@ -130,7 +130,7 @@ EOF
 
 this command will start a pod with the image chosen, and will exec you into its bash terminal:
 ```bash
-kubectl run -i --tty ubuntu22-test --image=ubuntu:22.04 -- bash
+kubectl run -i --tty debugger --image=wbitt/network-multitool -- bash
 ```
 
 ## run pod on specific node

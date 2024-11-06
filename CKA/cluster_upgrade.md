@@ -165,11 +165,40 @@ systemctl status kubelet
 journalctl -xeu kubelet
 ```
 
-# awesome command
+# notes
 recreate `kubeadm join` command on **ctrl plane node**, to run on a **worker node** that was upgraded manually separatly and wasn't initialized
 ```
 kubeadm token create --print-join-command
 ```
+
+**to download k8s binaries directly (bypassing apt package manager)**
+set minor and patch versions:
+(get them here https://github.com/kubernetes/kubernetes/blob/master/CHANGELOG/CHANGELOG-1.25.md)
+```bash
+K8S_MINOR=1.25
+K8S_PATCH=16
+K8S_VERSION="$K8S_MINOR.$K8S_PATCH"
+```
+download binaries:
+```bash
+wget --no-check-certificate https://pkgs.k8s.io/core:/stable:/v$K8S_MINOR/deb/amd64/kubectl_$K8S_VERSION-1.1_amd64.deb
+wget --no-check-certificate https://pkgs.k8s.io/core:/stable:/v$K8S_MINOR/deb/amd64/kubelet_$K8S_VERSION-1.1_amd64.deb
+wget --no-check-certificate https://pkgs.k8s.io/core:/stable:/v$K8S_MINOR/deb/amd64/kubeadm_$K8S_VERSION-1.1_amd64.deb
+```
+upgrade kubadm:
+```bash
+sudo apt-mark unhold kubeadm && \
+sudo dpkg -i kubeadm_$K8S_VERSION-1.1_amd64.deb && \
+sudo apt-mark hold kubeadm
+```
+upgrade kubelet + kubectl
+```bash
+sudo apt-mark unhold kubelet kubectl && \
+sudo dpkg -i kubelet_$K8S_VERSION-1.1_amd64.deb && \
+sudo dpkg -i kubectl_$K8S_VERSION-1.1_amd64.deb && \
+sudo apt-mark hold kubelet kubectl
+```
+
 
 check kube api server certificate using openssl
 ```

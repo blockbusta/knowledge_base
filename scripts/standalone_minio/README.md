@@ -1,9 +1,12 @@
 # Min.IO standalone deployment
 
 ### install stack
-Note the access/secret keys are both fixed to `minio` secret, replace them if not running a test/dev environment:
+Note the access/secret keys are both fixed to `minioadmin` secret, replace them if not running a test/dev environment:
+
 Access key (`MINIO_ROOT_USER`) 3-20 charsacters
+
 Secret key (`MINIO_ROOT_PASSWORD`) 4-40 charsacters
+
 ```
 kubectl create namespace minio
 kubectl apply -f https://raw.githubusercontent.com/blockbusta/knowledge_base/refs/heads/main/scripts/standalone_minio/deployment.yaml

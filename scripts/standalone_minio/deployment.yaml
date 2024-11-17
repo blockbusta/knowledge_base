@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio-standalone
+  namespace: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio-standalone
+  template:
+    metadata:
+      labels:
+        app: minio-standalone
+    spec:
+      securityContext:
+        fsGroup: 1000
+        runAsUser: 1000
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minio-storage
+      containers:
+      - name: minio-standalone
+        envFrom:
+        - secretRef:
+            name: minio-creds
+        env:
+          - name: MINIO_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: minio-creds
+                key: ACCESS_KEY
+          - name: MINIO_SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: minio-creds
+                key: SECRET_KEY
+        image: minio/minio:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /minio/health/live
+            port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 20
+          successThreshold: 1
+          timeoutSeconds: 1
+        ports:
+        - containerPort: 9000
+          protocol: TCP
+        volumeMounts:
+        - mountPath: "/data"
+          name: data
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /minio/health/ready
+            port: 9000
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "8"
+            memory: 20Gi
+          requests:
+            cpu: 200m
+            memory: 2Gi
+      restartPolicy: Always

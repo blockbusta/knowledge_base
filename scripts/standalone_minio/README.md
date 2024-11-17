@@ -3,9 +3,9 @@
 ### install stack
 Note that `minioadmin` is set as access/secret key, if not running a test/dev environment, replace them in the `minio-creds` secret:
 
-Access key (`MINIO_ROOT_USER`) 3-20 charsacters
+Access key (`MINIO_ROOT_USER`) 3-20 alphanumeric characters
 
-Secret key (`MINIO_ROOT_PASSWORD`) 4-40 charsacters
+Secret key (`MINIO_ROOT_PASSWORD`) 4-40 alphanumeric characters
 
 ```
 kubectl create namespace minio

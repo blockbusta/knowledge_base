@@ -1,0 +1,33 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: minio-standalone-ui
+  namespace: minio
+spec:
+  host: minio-standalone-ui.webapp.me
+  to:
+    kind: Service
+    name: minio-standalone-ui
+    weight: 100
+  port:
+    targetPort: 80
+  tls:
+    termination: edge
+  wildcardPolicy: None
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: minio-standalone
+  namespace: minio
+spec:
+  host: minio-standalone.webapp.me
+  to:
+    kind: Service
+    name: minio-standalone
+    weight: 100
+  port:
+    targetPort: 80
+  tls:
+    termination: edge
+  wildcardPolicy: None

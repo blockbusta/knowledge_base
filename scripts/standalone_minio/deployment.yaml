@@ -14,28 +14,23 @@ spec:
         app: minio-standalone
     spec:
       securityContext:
-        fsGroup: 1000
-        runAsUser: 1000
+        runAsNonRoot: true
+      serviceAccountName: default
       volumes:
-        - name: data
-          persistentVolumeClaim:
-            claimName: minio-storage
+      - name: data
+        persistentVolumeClaim:
+          claimName: minio-storage
       containers:
       - name: minio-standalone
         envFrom:
         - secretRef:
             name: minio-creds
-        env:
-          - name: MINIO_ACCESS_KEY
-            valueFrom:
-              secretKeyRef:
-                name: minio-creds
-                key: ACCESS_KEY
-          - name: MINIO_SECRET_KEY
-            valueFrom:
-              secretKeyRef:
-                name: minio-creds
-                key: SECRET_KEY
+        command:
+        - minio
+        - server
+        - --address=:9000
+        - --console-address=:9090
+        - /data
         image: minio/minio:latest
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -71,4 +66,10 @@ spec:
           requests:
             cpu: 200m
             memory: 2Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ "ALL" ]
+          seccompProfile:
+            type: RuntimeDefault
       restartPolicy: Always

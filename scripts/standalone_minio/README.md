@@ -1,7 +1,7 @@
 # Min.IO standalone deployment
 
 ### install stack
-Note that both access/secret key values are `minioadmin`, replace them if not running a test/dev environment:
+Note that `minioadmin` is set as access/secret key, if not running a test/dev environment, replace them in the `minio-creds` secret:
 
 Access key (`MINIO_ROOT_USER`) 3-20 charsacters
 

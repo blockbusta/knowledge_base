@@ -1,3 +1,9 @@
+# run minio client test pod
+```
+kubectl run minio-client --image=minio/mc:latest --command -- sleep infinity
+kubectl exec -it minio-client -- bash
+```
+
 # Object Storage migration
 
 <aside>

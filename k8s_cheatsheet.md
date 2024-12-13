@@ -305,27 +305,16 @@ kubectl patch secret my-secret \
 ```
 
 ### re-create secret in another namespace
-
-Export the existing secret:
 ```bash
-kubectl get secret my-secret -n source-namespace -o yaml > secret_old.yaml
-```
-
-Clean up and modify the YAML (using `yq` utility)
-Make sure to replace `target-namespace`:
-```bash
+kubectl -n SOURCE_NAMESPACE get secret my-secret -o yaml | \
 yq eval '
-  .metadata.namespace = "target-namespace" |
+  .metadata.namespace = "TARGET_NAMESPACE" |
   del(.metadata.creationTimestamp) |
   del(.metadata.resourceVersion) |
   del(.metadata.selfLink) |
   del(.metadata.uid)
-' secret_old.yaml > secret_new.yaml
-```
-
-Create the new secret in the target namespace
-```bash
-kubectl apply -f secret_new.yaml
+' - | \
+kubectl apply -f -
 ```
 
 ### check TLS secret certificate details 🌶️

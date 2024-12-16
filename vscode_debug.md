@@ -23,7 +23,7 @@ Here's how you can set it up:
          "name": "Python: Current File",
          "type": "python",
          "request": "launch",
-         "program": "${workspaceFolder}/your_script.py",
+         "program": "${file}",
          "console": "integratedTerminal",
          "env": {
            "MY_ENV_VAR": "value"

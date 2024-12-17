@@ -24,6 +24,7 @@ kubectl apply -f https://raw.githubusercontent.com/blockbusta/knowledge_base/ref
 ```
 
 **for nginx ingress controller with sub-path domain**
+
 deployment: add env var of full url
 ```yaml
         env:
@@ -42,6 +43,8 @@ on both ui/api ingresses:
       - path: /ui/?(.*)
         pathType: ImplementationSpecific
 ```
+
+reach UI by going to https://my-website.com/minio-ui/login
 
 **for istio ingress controller:**
 ```

@@ -133,6 +133,11 @@ this command will start a pod with the image chosen, and will exec you into its 
 kubectl run -i --tty debugger --image=wbitt/network-multitool -- bash
 ```
 
+run pod only, without exec:
+```bash
+kubectl run test --image=nginx --command -- sleep infinity
+```
+
 ## run pod on specific node
 ```bash
 kubectl run test-dgx05 --image=nginx --overrides='{"spec": {"nodeName": "dgx05"}}'

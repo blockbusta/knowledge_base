@@ -110,6 +110,31 @@ to show only 100 last rows of output:
 k logs --tail 100 deploy/app
 ```
 
+**script to export logs for an entire namespace**
+usage: `bash log_saver.sh mycoolnamespace` will export logs to sub-folder `./mycoolnamespace-logs/`
+```bash
+#!/bin/bash
+
+NAMESPACE=$1
+LOG_DIR="./$NAMESPACE-logs"
+mkdir $LOG_DIR
+
+PODS=$(kubectl get pods -n $NAMESPACE -o jsonpath='{.items[*].metadata.name}')
+
+for POD in $PODS; do
+  CONTAINERS=$(kubectl get pod $POD -n $NAMESPACE -o jsonpath='{.spec.containers[*].name}')
+  
+  for CONTAINER in $CONTAINERS; do
+    LOG_FILE="$LOG_DIR/${POD}_${CONTAINER}.log"
+    
+    echo "Collecting logs for Pod: $POD, Container: $CONTAINER"
+    kubectl logs --timestamps $POD -c $CONTAINER -n $NAMESPACE > "$LOG_FILE"
+  done
+done
+
+echo "Logs saved to $LOG_DIR"
+```
+
 ## editing & modifying
 
 …

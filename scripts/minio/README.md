@@ -1,5 +1,10 @@
 ## install minio using helm
 
+> this example use sub-path routing:
+> - minio console exposed at: `https://my.website.com/minio-console`
+> - minio api exposed at: `https://my.website.com/minio-api`
+
+
 **add repo**:
 ```
 helm repo add minio https://charts.min.io/

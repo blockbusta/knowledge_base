@@ -1,0 +1,50 @@
+image:
+  repository: quay.io/minio/minio
+  tag: latest
+
+mcImage:
+  repository: quay.io/minio/mc
+  tag: latest
+
+environment:
+  MINIO_BROWSER_REDIRECT_URL: https://my.website.com/minio-console
+
+mode: standalone
+
+rootUser: admin
+rootPassword: admin12345
+
+buckets:
+- name: test-bucket
+  policy: none
+
+persistence:
+  size: 10Gi
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  path: /minio-api/?(.*)
+  pathType: ImplementationSpecific
+  hosts:
+  - my.website.com
+  tls:
+  - secretName: domain-tls-secret
+    hosts:
+      - my.website.com
+
+consoleIngress:
+  enabled: true
+  ingressClassName: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+  path: /minio-console/?(.*)
+  pathType: ImplementationSpecific
+  hosts:
+  - my.website.com
+  tls:
+  - secretName: domain-tls-secret
+    hosts:
+      - my.website.com

@@ -352,6 +352,14 @@ kubectl apply -f -
 kubectl get secret <secret-name> -o jsonpath="{.data['tls\.crt']}" | base64 --decode | openssl x509 -noout -subject -issuer -dates
 ```
 
+### check domain certificate details 🌶️
+```bash
+
+DOMAIN="hello.com"
+
+echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+```
+
 ### list nodes resources
 ```bash
 kubectl get nodes  "-o=custom-columns=NAME:.metadata.name,CPUs:.status.capacity.cpu,RAM:.status.capacity.memory,NODE-POOL:.metadata.labels.runai/node-pool,GPU-TYPE:.metadata.labels.run\.ai\/type,GPUs:.metadata.labels.nvidia\.com\/gpu\.count,LOCKS:.spec.taints,KUBLET:.status.nodeInfo.kubeletVersion"

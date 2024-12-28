@@ -4,6 +4,7 @@
 > - minio console exposed at: `https://my.website.com/minio-console`
 > - minio api exposed at: `https://my.website.com/minio-api`
 
+---
 
 **add repo**:
 ```
@@ -23,4 +24,5 @@ helm install minio minio/minio \
 ---
 
 **original chart**: https://github.com/minio/minio/tree/master/helm/minio
+
 **original values**: https://github.com/minio/minio/blob/master/helm/minio/values.yaml

@@ -354,7 +354,6 @@ kubectl get secret <secret-name> -o jsonpath="{.data['tls\.crt']}" | base64 --de
 
 ### check domain certificate details 🌶️
 ```bash
-
 DOMAIN="hello.com"
 
 echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | openssl x509 -noout -subject -issuer -dates

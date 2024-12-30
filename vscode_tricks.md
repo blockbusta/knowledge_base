@@ -5,14 +5,19 @@
 ### free column selection in text
 click on text, then `option` + `SHIFT`, and drag to select the column
 
-## find & replace
+## find & replace using regex
 
-### empty lines (regex)
+### select all empty lines
 ```
 ^\s*$\n
 ```
 
-### lines containing STRING  (regex)
+### select all lines containing STRING
 ```
 ^.*STRING.*$\n
+```
+
+### find lines that contains 2 strings "hello" + "world"
+```
+(?=.*hello)(?=.*world).*
 ```

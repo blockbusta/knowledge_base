@@ -12,12 +12,12 @@ click on text, then `option` + `SHIFT`, and drag to select the column
 ^\s*$\n
 ```
 
-### select all lines containing STRING
+### select all lines containing "STRING"
 ```
 ^.*STRING.*$\n
 ```
 
-### find lines that contains 2 strings "hello" + "world"
+### find lines that contains 2 strings "HELLO" + "WORLD"
 ```
-(?=.*hello)(?=.*world).*
+(?=.*HELLO)(?=.*WORLD).*
 ```

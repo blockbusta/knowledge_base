@@ -370,3 +370,14 @@ ip-172-20-10-11   4      16070160Ki   <none>      <none>     <none>   [map[effec
 ip-172-20-10-20   8      32043512Ki   <none>      <none>     16       <none>                                                               v1.26.4
 ip-172-20-10-30   8      32043520Ki   <none>      <none>     16       <none>                                                               v1.26.4
 ```
+## GPU
+
+### get all pods with GPU request/limit
+```bash
+kubectl get pods --all-namespaces -o=jsonpath='{range .items[?(@.spec.containers[*].resources.requests.nvidia\.com/gpu)]}{.metadata.namespace}{" | "}{.metadata.name}{" | "}{.spec.containers[*].resources.requests.nvidia\.com/gpu}{" | "}{.spec.containers[*].resources.limits.nvidia\.com/gpu}{"\n"}{end}'
+```
+
+### get all pods with fraction GPU
+```bash
+kubectl get pods --all-namespaces -o custom-columns="NAMESPACE:.metadata.namespace,POD NAME:.metadata.name,GPU FRACTION:.metadata.annotations.gpu-fraction" | grep -v '<none>'
+```

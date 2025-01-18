@@ -384,13 +384,11 @@ kubectl get pods --all-namespaces -o custom-columns="NAMESPACE:.metadata.namespa
 
 ### get nodes' total & allocated GPU amount
 ```bash
-kubectl describe node NODE_NAME | grep -E "(nvidia.com/gpu:|nvidia.com/gpu )"
+gpu_total=$(kubectl describe node $NODE_NAME | grep "nvidia.com/gpu:" -m1 | awk '{print $2}')
+gpu_allocated=$(kubectl describe node $NODE_NAME | grep "nvidia.com/gpu " -m1 | awk '{print $2}')
+echo "node: $NODE_NAME, total GPUs: $gpu_total, Allocated GPUs: $gpu_allocated"
 ```
 example output:
 ```
-  nvidia.com/gpu:     1
-  nvidia.com/gpu:     1
-  nvidia.com/gpu     0             0
+node: ip-172-20-10-247, total GPUs: 1, Allocated GPUs: 0
 ```
-- Total: 1
-- Allocated: 0

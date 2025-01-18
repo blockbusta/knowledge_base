@@ -381,3 +381,16 @@ kubectl get pods --all-namespaces -o=jsonpath='{range .items[?(@.spec.containers
 ```bash
 kubectl get pods --all-namespaces -o custom-columns="NAMESPACE:.metadata.namespace,POD NAME:.metadata.name,GPU FRACTION:.metadata.annotations.gpu-fraction" | grep -v '<none>'
 ```
+
+### get nodes' total & allocated GPU amount
+```bash
+kubectl describe node NODE_NAME | grep -E "(nvidia.com/gpu:|nvidia.com/gpu )"
+```
+example output:
+```
+  nvidia.com/gpu:     1
+  nvidia.com/gpu:     1
+  nvidia.com/gpu     0             0
+```
+- Total: 1
+- Allocated: 0

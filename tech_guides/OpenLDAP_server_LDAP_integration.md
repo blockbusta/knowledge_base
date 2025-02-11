@@ -1,6 +1,6 @@
 # OpenLDAP server
 
-## **Reference:**
+**Reference:**
 [https://docs.bitnami.com/tutorials/create-openldap-server-kubernetes/](https://docs.bitnami.com/tutorials/create-openldap-server-kubernetes/)
 
 **OpenLDAP advanced configuration:**
@@ -115,7 +115,7 @@ create ldap utility pod:
 ```bash
 kubectl -n ldap run debugger --image=jefftadashi/ldapsearch --command -- sleep infinity
 kubectl -n ldap exec -it debugger -- sh
-``
+```
 
 get root domain info from openldap server pod:
 ```bash

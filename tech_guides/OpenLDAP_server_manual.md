@@ -90,7 +90,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: openldap
-  namespace: lolz
+  namespace: ldap
   labels:
     app.kubernetes.io/name: openldap
 spec:

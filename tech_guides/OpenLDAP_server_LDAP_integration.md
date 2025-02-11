@@ -1,25 +1,20 @@
-# OpenLDAP server + lolz LDAP integration
+# OpenLDAP server
 
-### **Reference:**
-
+## **Reference:**
 [https://docs.bitnami.com/tutorials/create-openldap-server-kubernetes/](https://docs.bitnami.com/tutorials/create-openldap-server-kubernetes/)
 
 **OpenLDAP advanced configuration:**
-
 [https://github.com/bitnami/containers/tree/main/bitnami/openldap#configuration](https://github.com/bitnami/containers/tree/main/bitnami/openldap#configuration)
 
-<aside>
-⚠️ first thing first,
-- create a CICD cluster + lolz env
-- sign up to lolz using the admin email
-- create an organization and finish onboarding
+## Resources:
+**namespace:**
+```bash
+kubectl create namespace ldap
+```
 
-</aside>
-
-### Secret:
-
-```ruby
-kubectl -n lolz create secret generic openldap \
+**secret:**
+```bash
+kubectl -n ldap create secret generic openldap \
 --from-literal=ldaproot=dc=jackson-testing,dc=zzz \
 --from-literal=adminusername=misteradmindude@jackson-testing.zzz \
 --from-literal=adminpassword=adminpassword \
@@ -27,15 +22,13 @@ kubectl -n lolz create secret generic openldap \
 --from-literal=passwords=weluvtotest0101,weluvtotest0202
 ```
 
-### Deployment:
-
+**deployment:**
 ```yaml
-kubectl apply -f - <<EOF
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: openldap
-  namespace: lolz
+  namespace: ldap
   labels:
     app.kubernetes.io/name: openldap
 spec:
@@ -81,13 +74,10 @@ spec:
           ports:
             - name: tcp-ldap
               containerPort: 1389
-EOF
 ```
 
-### Service:
-
+**service:**
 ```yaml
-kubectl apply -f - <<EOF
 apiVersion: v1
 kind: Service
 metadata:
@@ -103,10 +93,9 @@ spec:
       targetPort: tcp-ldap
   selector:
     app.kubernetes.io/name: openldap
-EOF
 ```
 
-### configuration in lolzapp:
+### common integration configuration:
 
 ```yaml
 ldap:
@@ -121,6 +110,17 @@ ldap:
 ```
 
 ### utilities:
+
+create ldap utility pod:
+```bash
+kubectl -n ldap run debugger --image=jefftadashi/ldapsearch --command -- sleep infinity
+kubectl -n ldap exec -it debugger -- sh
+``
+
+get root domain info from openldap server pod:
+```bash
+ldapsearch -x -b "dc=jackson-testing,dc=zzz" -H ldap://openldap.ldap.svc.cluster.local:1389
+```
 
 test basic LDAP connectivity from app pod:
 
@@ -176,14 +176,6 @@ same but using devise with any email+pass combo:
 Devise::LDAP::Adapter.valid_credentials?("dude01@jackson-testing.zzz", "weluvtotest0101")
 => true
 ```
-
-get root domain info from openldap server pod:
-
-```ruby
-ldapsearch -x -b "dc=jackson-testing,dc=zzz" -H ldap://openldap.lolz.svc.cluster.local:1389
-```
-
-[jackson LDAP testing notes](OpenLDAP%20server%20+%20lolz%20LDAP%20integration%202f8afc71603a446ea5416f8f07acead0/jackson%20LDAP%20testing%20notes%204fcff9d1244048e78cb2728cead57bcc.md)
 
 test connection to a secure LDAP server, using insecure flag:
 

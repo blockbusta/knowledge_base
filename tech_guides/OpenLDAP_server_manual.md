@@ -1,4 +1,4 @@
-# OpenLDAP server
+# OpenLDAP server (manual installation)
 
 **Reference:**
 [https://docs.bitnami.com/tutorials/create-openldap-server-kubernetes/](https://docs.bitnami.com/tutorials/create-openldap-server-kubernetes/)

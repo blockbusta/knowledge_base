@@ -13,11 +13,19 @@ kubectl create namespace ldap
 ```
 
 **secret:**
+Creates the following user schema under domain `jackson-testing.zzz`:
+
+| type | name | password |
+|--|--|--|
+| admin | misteradmindude@jackson-testing.zzz | admin123 |
+| user | dude01@jackson-testing.zzz | weluvtotest0101 |
+| user | dude02@jackson-testing.zzz | weluvtotest0101 |
+
 ```bash
 kubectl -n ldap create secret generic openldap \
 --from-literal=ldaproot=dc=jackson-testing,dc=zzz \
 --from-literal=adminusername=misteradmindude@jackson-testing.zzz \
---from-literal=adminpassword=adminpassword \
+--from-literal=adminpassword=admin123 \
 --from-literal=users=dude01@jackson-testing.zzz,dude02@jackson-testing.zzz \
 --from-literal=passwords=weluvtotest0101,weluvtotest0202
 ```
@@ -95,6 +103,19 @@ spec:
     app.kubernetes.io/name: openldap
 ```
 
+### utilities:
+
+create ldap utility pod:
+```bash
+kubectl -n ldap run debugger --image=jefftadashi/ldapsearch --command -- sleep infinity
+kubectl -n ldap exec -it debugger -- sh
+```
+
+get root domain info from openldap server pod:
+```bash
+ldapsearch -x -b "dc=jackson-testing,dc=zzz" -H ldap://openldap.ldap.svc.cluster.local:1389
+```
+
 ### common integration configuration:
 
 ```yaml
@@ -107,19 +128,6 @@ ldap:
       host: openldap.lolz.svc.cluster.local
       port: "1389"
       ssl: "false"
-```
-
-### utilities:
-
-create ldap utility pod:
-```bash
-kubectl -n ldap run debugger --image=jefftadashi/ldapsearch --command -- sleep infinity
-kubectl -n ldap exec -it debugger -- sh
-```
-
-get root domain info from openldap server pod:
-```bash
-ldapsearch -x -b "dc=jackson-testing,dc=zzz" -H ldap://openldap.ldap.svc.cluster.local:1389
 ```
 
 test basic LDAP connectivity from app pod:

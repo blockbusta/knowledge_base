@@ -11,7 +11,8 @@
 2. install
     
     ```bash
-    helm install -n ldap ldap helm-openldap/openldap-stack-ha \
+    helm install ldap helm-openldap/openldap-stack-ha \
+    -n ldap --create-namespace \
     --set global.ldapDomain=jackson.zzz \
     --set global.adminPassword=wow010203 \
     --set global.configPassword=wow010203 \

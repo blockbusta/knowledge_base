@@ -241,10 +241,10 @@ k create secret tls istio-ingressgateway-certs \
 --cert tls.crt
 ```
 
-### bonus: check domain certificate expiry date 😻
+### bonus: check domain certificate details 😻
 ```bash
 DOMAIN="openai.com";
-openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts </dev/null 2>/dev/null | openssl x509 -noout -enddate
+openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts </dev/null 2>/dev/null | openssl x509 -noout -issuer -subject -dates
 ```
 
 ### delete stubborn namespace with finalizers 🌶️

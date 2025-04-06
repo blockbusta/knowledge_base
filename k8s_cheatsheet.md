@@ -347,12 +347,12 @@ yq eval '
 kubectl apply -f -
 ```
 
-### check TLS secret certificate details 🌶️
+### check TLS certificate: from secret 🌶️
 ```bash
 kubectl get secret <secret-name> -o jsonpath="{.data['tls\.crt']}" | base64 --decode | openssl x509 -noout -subject -issuer -dates
 ```
 
-### check domain certificate details 🌶️
+### check TLS certificate: from domain 🌶️
 ```bash
 DOMAIN="hello.com"
 

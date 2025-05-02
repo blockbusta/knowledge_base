@@ -1,3 +1,9 @@
+### FFmpeg:
+Windows:
+```
+winget install "FFmpeg (Essentials Build)"
+```
+
 ### ✅ Install:
 https://github.com/yt-dlp/yt-dlp?tab=readme-ov-file#installation
 

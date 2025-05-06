@@ -6,7 +6,7 @@ Here's a script that you can run *inside* your pod to install the SSH server and
 set -e  # Exit immediately if a command exits with a non-zero status
 
 # Define a secure password for the user (replace with something strong!)
-PASSWORD="YourSecurePassword123!"  # REPLACE THIS!
+PASSWORD="123456"
 
 # Username
 USERNAME="developer"
@@ -60,6 +60,6 @@ Use the VS Code Remote - SSH extension to connect to the pod using
 ssh://developer@localhost:2222
 ```
 (or whatever port you forwarded).
-
+with password `123456`
 
 This script provides a way to set up SSH within a running pod. Remember the security implications and use it with extreme caution.

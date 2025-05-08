@@ -63,3 +63,8 @@ ssh://developer@localhost:2222
 with password `123456`
 
 This script provides a way to set up SSH within a running pod. Remember the security implications and use it with extreme caution.
+
+**Remove from known hosts for each new pod**
+```
+vim ~/.ssh/known_hosts
+``` 

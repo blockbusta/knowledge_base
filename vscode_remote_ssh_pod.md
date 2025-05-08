@@ -68,6 +68,17 @@ After running the script, you still need to set up port forwarding from your loc
 nohup kubectl port-forward <pod-name> 2222:22 &
 ```
 
+the `nohup` prefix is used to run the port forward process in the background.
+in order to stop it, find the process that is using this port:
+```
+lsof -i :2222
+```
+
+and kill the PID:
+```
+kill -9 <PID>
+```
+
 **Connect with VS Code:**
 
 Use the VS Code Remote - SSH extension to connect to the pod using

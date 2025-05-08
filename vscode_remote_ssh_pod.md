@@ -1,5 +1,8 @@
 Here's a script that you can run *inside* your pod to install the SSH server and set it up for VS Code Remote:
 
+## Method 1: Use any existing pod
+
+Run this shell script in any existing pod to allow SSH connectivity:
 ```bash
 #!/bin/bash
 
@@ -49,12 +52,24 @@ echo "Remember to forward port 22 from your pod!"
 echo "Use VS Code Remote - SSH to connect."
 ```
 
-**Port Forwarding:** After running the script, you still need to set up port forwarding from your local machine to the pod's SSH port (usually 22):
+## Method 2: Use pre-configured image
+
+Use this one liner to create a pod that is using an image with all the SSH configuration already built-in:
+```
+kubectl run lemme-debug --image=cyberdog123/remote_ssh_debugger
+```
+
+## Connect with VScode
+
+**Port Forwarding:** 
+
+After running the script, you still need to set up port forwarding from your local machine to the pod's SSH port (usually 22):
 ```bash
 nohup kubectl port-forward <pod-name> 2222:22 &
 ```
 
 **Connect with VS Code:**
+
 Use the VS Code Remote - SSH extension to connect to the pod using
 ```
 ssh://developer@localhost:2222
@@ -65,6 +80,8 @@ with password `123456`
 This script provides a way to set up SSH within a running pod. Remember the security implications and use it with extreme caution.
 
 **Remove from known hosts for each new pod**
+
+This is important as each new pod has diff public key:
 ```
 vim ~/.ssh/known_hosts
 ``` 

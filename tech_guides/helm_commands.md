@@ -83,6 +83,20 @@ tar -zxvf your-chart.tgz
 
 **get values of installed chart:**
 
-```ruby
+```bash
 helm get values lolz
+```
+
+### Search
+
+**search repo for charts:**
+
+```
+helm search repo kube-prometheus-stack
+```
+
+**list all available versions for chart:**
+
+```
+helm search repo prometheus-community/kube-prometheus-stack -l
 ```

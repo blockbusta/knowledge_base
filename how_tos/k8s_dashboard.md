@@ -77,9 +77,22 @@ These instructions outline the steps to deploy a Kubernetes Dashboard using Helm
 
 5.  **Access the Kubernetes Dashboard:**
 
-   Port Forward (Development/Testing):
+    Port Forward (Development/Testing):
+   
     ```bash
     nohup kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443 &
+    ```
+
+    Access the dashboard at http://localhost:8443/.
+
+    To stop port forwarding, find the process ID:
+    ```bash
+    lsof -i :8443
+    ```
+    
+    And kill it:
+    ```bash
+    kill -9 <PID>
     ```
 
 **Notes:**

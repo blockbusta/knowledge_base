@@ -83,7 +83,7 @@ These instructions outline the steps to deploy a Kubernetes Dashboard using Helm
     nohup kubectl -n kubernetes-dashboard port-forward svc/kubernetes-dashboard-kong-proxy 8443:443 &
     ```
 
-    Access the dashboard at http://localhost:8443/.
+    Access the dashboard at https://localhost:8443/.
 
     To stop port forwarding, find the process ID:
     ```bash

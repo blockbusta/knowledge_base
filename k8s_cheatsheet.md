@@ -226,27 +226,6 @@ kubectl cp -c main <NAMESPACE>/<SOURCE_POD>:/PATH/TO/FILE <DESTINATION_POD>:/ -c
 kget pods --sort-by=.status.startTime
 ```
 
-### save certificate files from TLS certificate secret
-```bash
-TLS_CRT_B64=$(kubectl  get secret ocp-funkyzebra-space-tls -o jsonpath="{.data.tls\.crt}")
-TLS_KEY_B64=$(kubectl  get secret ocp-funkyzebra-space-tls -o jsonpath="{.data.tls\.key}")
-echo $TLS_CRT_B64 | base64 -d > tls.crt
-echo $TLS_KEY_B64 | base64 -d > tls.key
-```
-
-### create TLS certificate secret
-```bash
-k create secret tls istio-ingressgateway-certs \
---key tls.key \
---cert tls.crt
-```
-
-### bonus: check domain certificate details 😻
-```bash
-DOMAIN="openai.com";
-openssl s_client -connect "$DOMAIN:443" -servername "$DOMAIN" -showcerts </dev/null 2>/dev/null | openssl x509 -noout -issuer -subject -dates
-```
-
 ### delete stubborn namespace with finalizers 🌶️
 <aside>
 ⚠️ run this only after deleting any visible resource left on that namespace. replace `delete-me` with the namespace.
@@ -357,6 +336,21 @@ from domain:
 DOMAIN="hello.com"
 
 echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+```
+
+### save certificate files from TLS secret
+```bash
+TLS_CRT_B64=$(kubectl  get secret ocp-funkyzebra-space-tls -o jsonpath="{.data.tls\.crt}")
+TLS_KEY_B64=$(kubectl  get secret ocp-funkyzebra-space-tls -o jsonpath="{.data.tls\.key}")
+echo $TLS_CRT_B64 | base64 -d > tls.crt
+echo $TLS_KEY_B64 | base64 -d > tls.key
+```
+
+### create TLS secret
+```bash
+k create secret tls istio-ingressgateway-certs \
+--key tls.key \
+--cert tls.crt
 ```
 
 ### list nodes resources

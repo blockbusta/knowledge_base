@@ -333,9 +333,7 @@ kubectl get secret <secret-name> -o jsonpath="{.data['tls\.crt']}" | base64 --de
 ```
 from domain:
 ```bash
-DOMAIN="hello.com"
-
-echo | openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | openssl x509 -noout -subject -issuer -dates
+DOMAIN="google.com"; openssl s_client -servername "$DOMAIN" -connect "$DOMAIN:443" 2>/dev/null | openssl x509 -noout -subject -issuer -dates
 ```
 
 ### save certificate files from TLS secret

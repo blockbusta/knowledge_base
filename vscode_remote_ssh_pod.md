@@ -96,3 +96,48 @@ This is important as each new pod has diff public key:
 ```
 vim ~/.ssh/known_hosts
 ``` 
+
+**Running non-root with custom UID/GID**
+
+Create deployment with UID/GID 5000:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: debuggger-custom-user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: debuggger-custom-user
+  template:
+    metadata:
+      labels:
+        app: debuggger-custom-user
+    spec:
+      securityContext:
+        runAsUser: 5000
+        runAsGroup: 5000
+      containers:
+      - name: debuggger-custom-user
+        image: cyberdog123/remote_ssh_debugger_custom_user
+```
+
+Port forward:
+
+```bash
+kubectl port-forward deploy/debuggger-custom-user 2222
+```
+
+connect via SSH:
+
+```bash
+ssh developer@localhost
+```
+
+Check your user:
+```bash
+developer@debuggger-custom-user-86d8bbdcc4-qqz92:~$ id
+uid=5000(developer) gid=5000(developer) groups=5000(developer),27(sudo)
+```

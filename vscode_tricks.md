@@ -25,7 +25,7 @@ Open **Automator** application -> New **Quick Action**, set the following:
 - **Image**: Action
 - **Color**: Purple
 
-From the **Library** list on the left, add **Run Shell Script** and set the following:
+From the list on the left, select **Library** ->  **Utilities** -> **Run Shell Script**, and set the following:
 
 - **Shell**: `/bin/zsh`
 - **Pass input**: as arguments

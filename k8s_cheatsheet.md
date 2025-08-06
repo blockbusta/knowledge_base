@@ -353,15 +353,19 @@ k create secret tls istio-ingressgateway-certs \
 
 ### list nodes resources
 ```bash
-kubectl get nodes  "-o=custom-columns=NAME:.metadata.name,CPUs:.status.capacity.cpu,RAM:.status.capacity.memory,NODE-POOL:.metadata.labels.runai/node-pool,GPU-TYPE:.metadata.labels.run\.ai\/type,GPUs:.metadata.labels.nvidia\.com\/gpu\.count,LOCKS:.spec.taints,KUBLET:.status.nodeInfo.kubeletVersion"
+kubectl get nodes  "-o=custom-columns=NAME:.metadata.name,CPUs:.status.capacity.cpu,RAM:.status.capacity.memory,GPU-count:.metadata.labels.nvidia\.com\/gpu\.count,GPU-type:.metadata.labels.nvidia\.com\/gpu\.product""
 ```
 example output:
 ```bash
-NAME              CPUs   RAM          NODE-POOL   GPU-TYPE   GPUs     LOCKS                                                                KUBLET
-ip-172-20-10-11   4      16070160Ki   <none>      <none>     <none>   [map[effect:NoSchedule key:node-role.kubernetes.io/control-plane]]   v1.26.4
-ip-172-20-10-20   8      32043512Ki   <none>      <none>     16       <none>                                                               v1.26.4
-ip-172-20-10-30   8      32043520Ki   <none>      <none>     16       <none>                                                               v1.26.4
+NAME                           CPUs   RAM          GPU-count   GPU-type
+ip-10-0-11-52.ec2.internal     8      32386476Ki   <none>      <none>
+ip-10-0-110-111.ec2.internal   8      32386476Ki   16          Tesla-V100
+ip-10-0-114-97.ec2.internal    8      32386476Ki   16          Tesla-V100
+ip-10-0-122-152.ec2.internal   8      32386476Ki   <none>      <none>
+ip-10-0-168-92.ec2.internal    8      32042404Ki   16          Tesla-V100
+ip-10-0-40-96.ec2.internal     8      32386476Ki   16          Tesla-V100
 ```
+
 ## GPU
 
 ### get all pods with GPU request/limit

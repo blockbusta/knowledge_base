@@ -285,3 +285,10 @@ If you need to manage Transmission via command line (using the CLI), you can int
 - Install Transmission via `apt`.
 - Configure settings for passwordless access via the web interface.
 - Restart the service and access the UI on your local network.
+
+# Notes
+
+change all files and folders under mount to be owned by specific user:
+```
+sudo chown -vR itay:itay /mnt/500apple/finished
+```

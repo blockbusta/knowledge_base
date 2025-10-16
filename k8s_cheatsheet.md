@@ -356,7 +356,7 @@ k create secret tls istio-ingressgateway-certs \
 NAMESPACE=default && kubectl get ingress -n $NAMESPACE -o json | jq -r '.items[] | (.metadata.namespace + "/" + .metadata.name) as $id | (.spec.tls // [] | length > 0) as $tls | .spec.rules[] | .host as $host | .http.paths[] | $id + ": " + (if $tls then "https://" else "http://" end) + $host + .path'
 ```
 
-### list nodes resources
+### list nodes resources 🌶️🌶️🌶
 ```bash
 kubectl get nodes "-o=custom-columns=NAME:.metadata.name,CPUs:.status.capacity.cpu,RAM:.status.capacity.memory,GPU-cap:.status.capacity.nvidia\.com\/gpu,GPU-aloc:.status.allocatable.nvidia\.com\/gpu,GPU-type:.metadata.labels.nvidia\.com\/gpu\.product,OS:.status.nodeInfo.osImage,K8S:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion"
 ```

@@ -358,17 +358,16 @@ NAMESPACE=default && kubectl get ingress -n $NAMESPACE -o json | jq -r '.items[]
 
 ### list nodes resources
 ```bash
-kubectl get nodes  "-o=custom-columns=NAME:.metadata.name,CPUs:.status.capacity.cpu,RAM:.status.capacity.memory,GPU-count:.metadata.labels.nvidia\.com\/gpu\.count,GPU-type:.metadata.labels.nvidia\.com\/gpu\.product""
+kubectl get nodes "-o=custom-columns=NAME:.metadata.name,CPUs:.status.capacity.cpu,RAM:.status.capacity.memory,GPU-cap:.status.capacity.nvidia\.com\/gpu,GPU-aloc:.status.allocatable.nvidia\.com\/gpu,GPU-type:.metadata.labels.nvidia\.com\/gpu\.product,OS:.status.nodeInfo.osImage,K8S:.status.nodeInfo.kubeletVersion,RUNTIME:.status.nodeInfo.containerRuntimeVersion"
 ```
+
 example output:
-```bash
-NAME                           CPUs   RAM          GPU-count   GPU-type
-ip-10-0-11-52.ec2.internal     8      32386476Ki   <none>      <none>
-ip-10-0-110-111.ec2.internal   8      32386476Ki   16          Tesla-V100
-ip-10-0-114-97.ec2.internal    8      32386476Ki   16          Tesla-V100
-ip-10-0-122-152.ec2.internal   8      32386476Ki   <none>      <none>
-ip-10-0-168-92.ec2.internal    8      32042404Ki   16          Tesla-V100
-ip-10-0-40-96.ec2.internal     8      32386476Ki   16          Tesla-V100
+```
+NAME               CPUs   RAM          GPU-cap   GPU-aloc   GPU-type     OS                   K8S       RUNTIME
+ip-172-20-10-233   8      32387572Ki   <none>    <none>     <none>       Ubuntu 20.04.6 LTS   v1.28.9   containerd://1.7.27
+ip-172-20-10-26    8      32387568Ki   <none>    <none>     <none>       Ubuntu 20.04.6 LTS   v1.28.9   containerd://1.7.27
+ip-172-20-10-28    8      32043504Ki   <none>    <none>     <none>       Ubuntu 20.04.6 LTS   v1.28.9   containerd://1.7.27
+ip-172-20-10-92    8      32043504Ki   16        16         Tesla-V100   Ubuntu 20.04.6 LTS   v1.28.9   containerd://1.7.27
 ```
 
 ## GPU

@@ -292,3 +292,8 @@ change all files and folders under mount to be owned by specific user:
 ```
 sudo chown -vR itay:itay /mnt/500apple/finished
 ```
+
+when a mount disappears, sometimes this recovers it:
+```
+systemctl daemon-reload
+```

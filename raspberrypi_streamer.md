@@ -297,3 +297,10 @@ when a mount disappears, sometimes this recovers it:
 ```
 systemctl daemon-reload
 ```
+
+move folders using rsync:
+```
+FOLDER_NAME="this_folder";
+TARGET_LOCATION="/my/target/location/";
+sudo rsync -ah --info=progress2 --remove-source-files $FOLDER_NAME $TARGET_LOCATION && find $FOLDER_NAME -type d -empty -delete
+```

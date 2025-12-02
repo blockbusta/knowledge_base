@@ -180,6 +180,7 @@ kubectl -n kube-system exec -it my-pod -c debugger -- bash
 ```
 
 ## debug node 🌶️🌶️🌶
+this creates a pod on the node with root access - super useful!
 ```bash
 kubectl debug node/ip-172-20-10-13 -it --image=ubuntu -- chroot /host bash
 ```

@@ -179,6 +179,11 @@ exec into that container after its up:
 kubectl -n kube-system exec -it my-pod -c debugger -- bash
 ```
 
+## debug node 🌶️🌶️🌶
+```bash
+kubectl debug node/ip-172-20-10-13 -it --image=ubuntu -- chroot /host bash
+```
+
 ### get an entire secret decoded at once 🌶️🌶️🌶️🌶️🌶️
 using kubectl:
 ```bash

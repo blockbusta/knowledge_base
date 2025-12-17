@@ -403,6 +403,7 @@ node: ip-172-20-10-247, total GPUs: 1, Allocated GPUs: 0
 ## AWS
 
 ### run AWS CLI commands, from node that runs on EC2 instance / EKS node:
+for example: `aws sts get-caller-identity`
 ```bash
 # Quick one-liner to run aws-cli in a pod on a specific node
 kubectl run aws-cli-test --rm -i --tty \

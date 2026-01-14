@@ -1,6 +1,16 @@
 # use podman as container
 
-### apply this yaml:
+### run this pod:
+```bash
+kubectl run podman-ops --image=quay.io/podman/stable --privileged=true -- sleep infinity
+```
+### exec to pod:
+
+```bash
+kubectl exec -it podman-ops -- bash
+```
+
+alternatively, apply this yaml:
 
 ```yaml
 kubectl apply -f - <<EOF
@@ -18,12 +28,6 @@ spec:
      securityContext:
        privileged: true
 EOF
-```
-
-exec to pod:
-
-```bash
-kubectl exec -it podman-ops -- bash
 ```
 
 from the pod terminal, you can execute all **podman commands (same as with docker)**

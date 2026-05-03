@@ -257,11 +257,6 @@ kubectl create secret docker-registry **app-registry** \
 --docker-password=mypass
 ```
 
-### acknowledge OCP 4.11 to 4.12 upgrade
-```bash
-oc -n openshift-config patch cm admin-acks --patch '{"data":{"ack-4.11-kube-1.25-api-removals-in-4.12":"true"}}' --type=merge
-```
-
 ## loops / batch
 
 ### batch execute command on several pods
@@ -416,4 +411,29 @@ kubectl run aws-cli-test --rm -i --tty \
 This pod gives you full root shell access to the underlying Kubernetes node by using `nsenter` to enter all namespaces of PID 1 (the host's init process) with privileged permissions, effectively letting you run commands as if you were logged directly into the node.
 ```bash
 TARGET_NODE_NAME=your-node-name && echo -e "apiVersion: v1\nkind: Pod\nmetadata:\n  name: node-shell-$TARGET_NODE_NAME\nspec:\n  nodeName: $TARGET_NODE_NAME\n  hostNetwork: true\n  hostPID: true\n  hostIPC: true\n  containers:\n    - name: node-debug-shell\n      image: docker.io/alpine:3.13\n      command:\n        - nsenter\n      args:\n        - '-t'\n        - '1'\n        - '-m'\n        - '-u'\n        - '-i'\n        - '-n'\n        - sleep\n        - '14000'\n      securityContext:\n        privileged: true" | kubectl apply -f -
+```
+
+## OpenShift
+
+### create `oc login` command using kubectl
+```bash
+TOKEN_SUFFIX=$(openssl rand 32 | base64 | tr '+/' '-_' | tr -d '=') && \
+RESOURCE_NAME="sha256~$(printf '%s' "$TOKEN_SUFFIX" | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '=')" && \
+USER_UID=$(kubectl get oauthaccesstokens -o jsonpath='{.items[0].userUID}') && \
+SERVER=$(kubectl config view --raw -o jsonpath='{.clusters[0].cluster.server}') && \
+OAUTH_HOST=$(kubectl get route oauth-openshift -n openshift-authentication -o jsonpath='{.spec.host}') && \
+kubectl create -f - <<EOF
+apiVersion: oauth.openshift.io/v1
+kind: OAuthAccessToken
+metadata:
+  name: "${RESOURCE_NAME}"
+clientName: openshift-browser-client
+expiresIn: 86400
+redirectURI: "https://${OAUTH_HOST}/oauth/token/display"
+scopes:
+- user:full
+userName: "kube:admin"
+userUID: "${USER_UID}"
+EOF
+echo "oc login --token=sha256~${TOKEN_SUFFIX} --server=${SERVER}"
 ```

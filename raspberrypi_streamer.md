@@ -304,3 +304,52 @@ FOLDER_NAME="this_folder";
 TARGET_LOCATION="/my/target/location/";
 sudo rsync -ah --info=progress2 --remove-source-files $FOLDER_NAME $TARGET_LOCATION && find $FOLDER_NAME -type d -empty -delete
 ```
+
+### megatools CLI
+
+1. Get latest linux binary
+```
+CLI_AARCH64_LATEST=$(
+    curl -fsSL https://xff.cz/megatools/builds/builds/ |
+    grep -oE 'megatools-[^"]*-linux-aarch64\.tar\.gz' |
+    head -n1
+)
+
+echo "$CLI_AARCH64_LATEST"
+``` 
+2. Download and install
+
+Download the binary for your architecture (example: Raspberry Pi 64-bit / aarch64):
+```
+curl -O https://xff.cz/megatools/builds/builds/$CLI_AARCH64_LATEST
+tar -xzvf $CLI_AARCH64_LATEST
+rm -rf $CLI_AARCH64_LATEST
+cd megatools*
+chmod +x megatools
+sudo mv megatools /usr/local/bin/
+```
+
+Verify installation:
+```
+megatools version
+```
+
+3. Download to a specific directory
+```
+megatools dl \
+    --path /path/to/downloads \
+    'https://mega.nz/#!FILE_ID!FILE_KEY'
+```
+4. Run in the background
+
+Useful for large downloads or SSH sessions:
+```
+nohup megatools dl \
+    --path /mnt/500apple/finished/ \
+    'https://mega.nz/#!FILE_ID!FILE_KEY' &
+```
+
+Monitor the output:
+```
+tail -f nohup.out
+```

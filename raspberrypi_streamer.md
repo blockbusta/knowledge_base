@@ -209,16 +209,6 @@ To set up **Transmission** (a lightweight and popular torrent client) on your Ra
    ```
 
 ### **Step 2: Configure Transmission**
-By default, Transmission runs as a background service. You need to configure it for your network, as the web interface is password-protected by default.
-
-1. **Stop the Transmission Daemon**:
-   To modify the configuration file, stop the Transmission service first:
-   ```bash
-   sudo systemctl stop transmission-daemon
-   ```
----
-
-### **Step 2: Configure Transmission**
 
 By default, Transmission runs as a background service. You need to configure it for your network and file permissions.
 

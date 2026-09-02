@@ -216,34 +216,135 @@ By default, Transmission runs as a background service. You need to configure it 
    ```bash
    sudo systemctl stop transmission-daemon
    ```
+---
+
+### **Step 2: Configure Transmission**
+
+By default, Transmission runs as a background service. You need to configure it for your network and file permissions.
+
+1. **Stop the Transmission Daemon**:
+
+   To modify the configuration file, stop the Transmission service first:
+
+   ```bash
+   sudo systemctl stop transmission-daemon
+   ```
 
 2. **Edit the Configuration File**:
-   The configuration file is located at `/etc/transmission-daemon/settings.json`. Open it with your preferred text editor (e.g., vim):
+
+   The configuration file is located at `/etc/transmission-daemon/settings.json`:
+
    ```bash
    sudo vim /etc/transmission-daemon/settings.json
    ```
 
    Key changes you should make:
-   - **"rpc-authentication-required"**: Set this to `false` to allow passwordless access.
+
+   * **`"rpc-authentication-required"`**: Set this to `false` to allow passwordless access.
+
      ```json
      "rpc-authentication-required": false,
      ```
-   - **"rpc-bind-address"**: Set to `0.0.0.0` to allow access from any device on your local network.
+
+   * **`"rpc-bind-address"`**: Set to `0.0.0.0` to allow access from any device on your local network.
+
      ```json
      "rpc-bind-address": "0.0.0.0",
      ```
-   - **"rpc-whitelist"**: Set this to `*.*.*.*` to allow connections from any IP address (you can restrict this if you prefer).
+
+   * **`"rpc-whitelist"`**: Set to `*.*.*.*` to allow connections from any IP address (you can restrict this if you prefer).
+
      ```json
      "rpc-whitelist": "*.*.*.*",
      ```
 
-   Save and exit by pressing `CTRL+X`, then `Y`, and finally `Enter`.
+   * **`"umask"`**: Set to `2` so files created by Transmission are group-writable.
 
-3. **Adjust Folder Permissions (Optional)**:
-   Ensure Transmission can write to the directory you want to save torrents to. For example, if you want to use `/mnt/zata`:
+     ```json
+     "umask": 2,
+     ```
+
+   This is important because Transmission runs as the `debian-transmission` user, while my normal user (`itay`) accesses the files through the `debian-transmission` group.
+
+3. **Add `itay` to the Transmission Group**:
+
+   Make sure `itay` is a member of the `debian-transmission` group:
+
    ```bash
-   sudo chmod -R 777 /mnt/zata
+   sudo usermod -aG debian-transmission itay
    ```
+
+   Log out and back in after this change so the new group membership takes effect.
+
+4. **Configure the Download Directories**:
+
+   Assuming Transmission uses:
+
+   ```text
+   /mnt/500apple/incomplete
+   /mnt/500apple/finished
+   ```
+
+   Make the Transmission group the group owner:
+
+   ```bash
+   sudo chgrp -R debian-transmission /mnt/500apple/incomplete
+   sudo chgrp -R debian-transmission /mnt/500apple/finished
+   ```
+
+   Make all directories group-writable and enable the setgid bit:
+
+   ```bash
+   sudo find /mnt/500apple/incomplete -type d -exec chmod 2775 {} \;
+   sudo find /mnt/500apple/finished -type d -exec chmod 2775 {} \;
+   ```
+
+   The setgid bit (`2` in `2775`) ensures that new files and directories inherit the `debian-transmission` group.
+
+5. **Fix Permissions on Existing Files**:
+
+   If the directories already contain files, make them group-writable:
+
+   ```bash
+   sudo find /mnt/500apple/incomplete -type f -exec chmod g+rw {} \;
+   sudo find /mnt/500apple/finished -type f -exec chmod g+rw {} \;
+   ```
+
+6. **Start Transmission**:
+
+   ```bash
+   sudo systemctl start transmission-daemon
+   ```
+
+### **Result**
+
+Transmission runs as:
+
+```text
+debian-transmission
+```
+
+and `itay` is a member of:
+
+```text
+debian-transmission
+```
+
+New files should therefore look approximately like:
+
+```text
+-rw-rw-r-- transmission debian-transmission filename
+```
+
+rather than:
+
+```text
+-rw-r--r-- transmission debian-transmission filename
+```
+
+This means `itay` can read and modify files created by Transmission without changing their ownership.
+
+The setgid bit on the directories also ensures that newly created subdirectories continue using the `debian-transmission` group.
 
 ### **Step 3: Restart Transmission**
 After modifying the configuration, restart the Transmission service to apply the changes:

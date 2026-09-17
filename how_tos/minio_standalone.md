@@ -20,8 +20,15 @@ mcImage:
 
 mode: standalone
 
+# basic CRUD user
 rootUser: admin
 rootPassword: master123
+
+# root admin:
+users:
+  - accessKey: console
+    secretKey: console123
+    policy: consoleAdmin
 
 buckets:
   - name: test-bucket

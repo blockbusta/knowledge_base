@@ -46,7 +46,8 @@ helm repo update
 helm install seaweedfs seaweedfs/seaweedfs \
   --namespace seaweedfs \
   --create-namespace \
-  -f seaweedfs-values.yaml
+  -f seaweedfs-values.yaml \
+  --debug
 ```
 
 Verify all pods reach `Running`:

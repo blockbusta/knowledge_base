@@ -411,7 +411,7 @@ kubectl run aws-cli-test --rm -i --tty \
 ## node shell
 This pod gives you full root shell access to the underlying Kubernetes node by using `nsenter` to enter all namespaces of PID 1 (the host's init process) with privileged permissions, effectively letting you run commands as if you were logged directly into the node.
 ```bash
-TARGET_NODE_NAME=your-node-name && echo -e "apiVersion: v1\nkind: Pod\nmetadata:\n  name: node-shell-$TARGET_NODE_NAME\nspec:\n  nodeName: $TARGET_NODE_NAME\n  hostNetwork: true\n  hostPID: true\n  hostIPC: true\n  containers:\n    - name: node-debug-shell\n      image: docker.io/alpine:3.13\n      command:\n        - nsenter\n      args:\n        - '-t'\n        - '1'\n        - '-m'\n        - '-u'\n        - '-i'\n        - '-n'\n        - sleep\n        - '14000'\n      securityContext:\n        privileged: true" | kubectl apply -f -
+TARGET_NODE_NAME=your-node-name && echo -e "apiVersion: v1\nkind: Pod\nmetadata:\n  name: node-shell-$TARGET_NODE_NAME\nspec:\n  nodeName: $TARGET_NODE_NAME\n  hostNetwork: true\n  hostPID: true\n  hostIPC: true\n  containers:\n    - name: node-debug-shell\n      image: alpine:latest\n      command:\n        - nsenter\n      args:\n        - '-t'\n        - '1'\n        - '-m'\n        - '-u'\n        - '-i'\n        - '-n'\n        - sleep\n        - '14000'\n      securityContext:\n        privileged: true" | kubectl apply -f -
 ```
 
 ## OpenShift
